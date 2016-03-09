@@ -159,31 +159,31 @@ class Particle
 		else
 			return;
 		
+		double restitution = 1.0;
 		//Calculate Relative velocity
 		Vec3 rv = new Vec3(workingPart.vel.x - this.vel.x, workingPart.vel.y - this.vel.y);
 		//Calculate Velocity in normal direction and return if negative for intuitive results
 		double velAlongNorm = rv.DotProduct(unit_norm);
 		if(velAlongNorm > 0)
-			return;
+			restitution = 0.9;
 		
-		//double vel_portion = 0.0;
 		//if (rv.length() > 0.001 && velAlongNorm > 0)
 		//	vel_portion = 1- (velAlongNorm / rv.length());
 		//System.out.println("vel_port: " + vel_portion);
 		
 		//Find overlap of particles
 		double overlap = r - working_dist;
-		if (overlap > 1 && rv.length() < 1)
-		{
+		//if (overlap > this.radius/2 && rv.length() < 1)
+		//{
 			//System.out.println("This is true");
-			return;
-		}
+		//	return;
+		//}
 		//overlap = Math.min(overlap,radius * 0.1);
 		//Find minimum restitution for intuitive results
 		//double e = Math.min(this.elasticity, workingPart.elasticity);
 		
-		double repulse = 50000000;
-		double press_acc = repulse * overlap;//Math.log((overlap*10)+1
+		double repulse = 1000000;
+		double press_acc = restitution * repulse * overlap;//Math.log((overlap*10)+1
 		
 		//System.out.println("press_acc: " + press_acc);
 		
@@ -282,8 +282,8 @@ class Particle
 		larger.vel.replace( ((larger.vel.x * larger.mass) + (smaller.vel.x * smaller.mass))/mass_add,
 								((larger.vel.y * larger.mass) + (smaller.vel.y * smaller.mass))/mass_add);
 		
-		//larger.radius = Math.cbrt((smaller.radius*smaller.radius*smaller.radius) + (larger.radius*larger.radius*larger.radius));
-		larger.radius = Math.sqrt((smaller.radius*smaller.radius) + (larger.radius*larger.radius));
+		larger.radius = Math.cbrt((smaller.radius*smaller.radius*smaller.radius) + (larger.radius*larger.radius*larger.radius));
+		//larger.radius = Math.sqrt((smaller.radius*smaller.radius) + (larger.radius*larger.radius));
 		larger.RGB.replace( ((larger.RGB.x * larger.mass) + (smaller.RGB.x * smaller.mass))/mass_add,
 							((larger.RGB.y * larger.mass) + (smaller.RGB.y * smaller.mass))/mass_add,
 							((larger.RGB.z * larger.mass) + (smaller.RGB.z * smaller.mass))/mass_add );

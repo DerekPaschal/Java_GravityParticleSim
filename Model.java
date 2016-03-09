@@ -236,8 +236,8 @@ class Model
 		{
 			new_part_pos.replace(new_x, new_y);
 			int new_size = 2;
-			double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
-			//double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * 40000); //Mass dependent on Volume of Sphere
+			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * density); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
 			createOrbitingParticle(new_part_pos, new_size, new_mass, true, new Vec3(250,250,250));
 		}
@@ -302,8 +302,8 @@ class Model
 			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
 			if (new_size < 5)
 				new_size = 5;
-			double new_mass = 2 * 3.14 * new_size * new_size * this.density;
-			//double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * 100000);
+			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
+			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.density);
 			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 1.0, new_mass, false, RGB));
 		}
 		
