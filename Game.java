@@ -53,7 +53,7 @@ public class Game extends JFrame { //implements ActionListener
 	{
 		long new_frame_time = System.nanoTime();
 		
-		double accuracy_multiple = 100;
+		double accuracy_multiple = 10;
 		if (accuracy_multiple < 1)
 		{
 			System.out.println("Accuracy must be set to 1 or higher!");
@@ -61,7 +61,7 @@ public class Game extends JFrame { //implements ActionListener
 		}
 		
 		double timestep = 1/accuracy_multiple;
-		double secs_per_sec = 1;
+		double secs_per_sec = 5;
 		this.model.timestep = timestep;
 		this.model.secs_per_sec = secs_per_sec;
 		for (int i = 0; i < accuracy_multiple * secs_per_sec; i++)
@@ -80,13 +80,12 @@ public class Game extends JFrame { //implements ActionListener
 		//This block is not measured by wait_time
 		int wait_time =(int) (17 - elapsed_frame_time);
 		this.view.is_lag = (wait_time < 0);
-		//this.view.is_lag = true;
-		//if (!this.view.is_lag)
-		//{
-		//	try{
-		//	TimeUnit.MILLISECONDS.sleep(wait_time);
-		//	} catch (InterruptedException e){}
-		//}
+		if (!this.view.is_lag)
+		{
+			try{
+			TimeUnit.MILLISECONDS.sleep(wait_time);
+			} catch (InterruptedException e){}
+		}
 	}
 	
 	public void DoSim()

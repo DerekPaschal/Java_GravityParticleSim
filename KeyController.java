@@ -42,9 +42,9 @@ class KeyController implements KeyListener
 				this.model.need_to_clear = true;
 				this.model.state = 2;
 				double new_size = 3;
-				double new_mass = 2 * 3.14 * new_size * new_size * model.density; //Mass dependent on Area of Circle
-				//double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * model.density);
-				this.model.createPartDisk(100*100,200,false,true, new Vec3(model.window.x/2,model.window.y/2),
+				//double new_mass = 2 * 3.14 * new_size * new_size * model.density; //Mass dependent on Area of Circle
+				double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * model.density);
+				this.model.createPartDisk(70*70,300,false,true, new Vec3(model.window.x/2,model.window.y/2),
 													new_size, 2* new_mass, true, new Vec3(250,250,250));
 				
 		}

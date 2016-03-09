@@ -139,6 +139,9 @@ class Particle
 	
 	public void pressureCollision()
 	{
+		if (workingPart.remove)
+			return;
+		
 		if (!workingPart.bounces)
 			return;
 		
@@ -165,7 +168,7 @@ class Particle
 		//Calculate Velocity in normal direction and return if negative for intuitive results
 		double velAlongNorm = rv.DotProduct(unit_norm);
 		if(velAlongNorm > 0)
-			restitution = 0.9;
+			restitution = elasticity;
 		
 		//if (rv.length() > 0.001 && velAlongNorm > 0)
 		//	vel_portion = 1- (velAlongNorm / rv.length());
@@ -182,8 +185,8 @@ class Particle
 		//Find minimum restitution for intuitive results
 		//double e = Math.min(this.elasticity, workingPart.elasticity);
 		
-		double repulse = 1000000;
-		double press_acc = restitution * repulse * overlap;//Math.log((overlap*10)+1
+		double repulse = 10000000;
+		double press_acc = restitution * repulse * overlap;//Math.log((overlap*10)+1)
 		
 		//System.out.println("press_acc: " + press_acc);
 		
@@ -329,8 +332,8 @@ class Particle
 		}
 		return false;
 	}
-	
 
+	
 	
 	public void draw(Graphics2D g2)
 	{	

@@ -32,6 +32,7 @@ class Model
 	boolean cameraRight;
 	
 	double density;
+	double elasticity;
 	
 	///State '1' is making central "suns" and clicking creates light orbiting bodys
 	///State '2' creates a collapsing disk of light particles, which you shoot with heavier bodies
@@ -61,6 +62,7 @@ class Model
 		
 		this.state = 1;
 		this.density = 500000;
+		this.elasticity = 0.5;
 	}
 
 	
@@ -156,7 +158,9 @@ class Model
 		//Do not use Iterator here, part_not_added is not protected
 		for (int i = 0; i < part_not_added.size(); i++)	
 		{
-			m_part_list.add(part_not_added.get(i));
+			if (allow_new_part(part_not_added.get(i)))
+				m_part_list.add(part_not_added.get(i));
+			
 			part_not_added.remove(i);
 		}
 	}
@@ -264,9 +268,9 @@ class Model
 			vel.divi(100);
 			
 			double new_size = 6;
-			double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
-			//double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  100000);
-			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, vel, new_size, 0.9, new_mass, true, RGB));
+			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.density);
+			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, vel, new_size, elasticity, new_mass, true, RGB));
 		}
 	}
 	
@@ -304,7 +308,7 @@ class Model
 				new_size = 5;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.density);
-			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 1.0, new_mass, false, RGB));
+			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, elasticity, new_mass, false, RGB));
 		}
 		
 		if (state == 2)
@@ -314,9 +318,9 @@ class Model
 			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
 			if (new_size < 3)
 				new_size = 3;
-			double new_mass = 2 * 3.14 * new_size * new_size * this.density;
-			//double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * 100000);
-			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 1.0, new_mass, true, RGB));
+			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
+			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * density);
+			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, elasticity, new_mass, true, RGB));
 		}
 	}
 	
@@ -346,9 +350,11 @@ class Model
 			
 			//Apply the Orbital Velocity to the Tangent Vector to create an Orbital Velocity vector
 			tan.multi(OrbitV);
-			this.part_not_added.add(new Particle(m_part_list, window, new_pos, tan, new_size, 1.0 , new_mass, bounce, RGB));
+			this.part_not_added.add(new Particle(m_part_list, window, new_pos, tan, new_size, elasticity , new_mass, bounce, RGB));
 	}
 	
+	
+	//This is not intellegent enough to work, do not use
 	public void createPartDisk(double sqrd_radius, int parts, boolean orbiting, boolean balanced, Vec3 center, 
 										double new_size, double new_mass, boolean bounce, Vec3 RGB)
 	{
@@ -366,12 +372,30 @@ class Model
 				x = (Math.sqrt(r) * Math.cos(theta)) + center.x;
 				y = (Math.sqrt(r) * Math.sin(theta)) + center.y;
 				Vec3 new_pos = new Vec3(x,y);
-				this.part_not_added.add(new Particle(m_part_list, window, new_pos, new Vec3(), new_size, 0.9, new_mass, bounce, RGB));
+				this.part_not_added.add(new Particle(m_part_list, window, new_pos, new Vec3(), new_size, elasticity, new_mass, bounce, RGB));
 			}
 		}
 		this.load_new = true;
 	}
 	
+	
+	
+	public boolean allow_new_part(Particle testingPart)
+	{
+		double distance_sqrd, r2;
+		partIterator = this.m_part_list.listIterator();
+		while (partIterator.hasNext())
+		{
+			this.workingPart = partIterator.next();
+			
+			distance_sqrd = Math.abs((workingPart.pos.x - testingPart.pos.x)*(workingPart.pos.x - testingPart.pos.x) +
+							(workingPart.pos.y - testingPart.pos.y)*(workingPart.pos.y - testingPart.pos.y));
+			r2 = (testingPart.radius + workingPart.radius)*(testingPart.radius + workingPart.radius);
+			if (distance_sqrd < r2)
+				return false;
+		}
+		return true;
+	}
 }
 
 
