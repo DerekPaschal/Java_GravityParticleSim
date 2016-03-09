@@ -31,8 +31,6 @@ class Particle
 	double timestep;
 	double working_dist;
 	
-	boolean correct_pos;
-	
 	
 	///------------------------------------------------------------------
 	/// Construct the particle with all initial conditions as
@@ -67,7 +65,7 @@ class Particle
 	///------------------------------------------------------------------ 
 	public void Gravity()
 	{
-		if (working_dist < (this.radius + workingPart.radius) * 0.5)
+		if (working_dist < (this.radius + workingPart.radius) * 0.1)
 			return;
 		double VectorG = ((GravG * workingPart.mass) / (working_dist*working_dist*working_dist));
 		
@@ -116,7 +114,6 @@ class Particle
 			
 			
 		}
-		correct_pos = false;
 		return remove;
 	}
 	public void updateVel()
@@ -163,25 +160,30 @@ class Particle
 			return;
 		
 		//Calculate Relative velocity
-		//Vec3 rv = new Vec3(workingPart.vel.x - this.vel.x, workingPart.vel.y - this.vel.y);
+		Vec3 rv = new Vec3(workingPart.vel.x - this.vel.x, workingPart.vel.y - this.vel.y);
 		//Calculate Velocity in normal direction and return if negative for intuitive results
-		//double velAlongNorm = rv.DotProduct(unit_norm);
-		//if(velAlongNorm > 0)
-		//	return;
+		double velAlongNorm = rv.DotProduct(unit_norm);
+		if(velAlongNorm > 0)
+			return;
 		
 		//double vel_portion = 0.0;
-		//if (rv.length() > 0.001)
+		//if (rv.length() > 0.001 && velAlongNorm > 0)
 		//	vel_portion = 1- (velAlongNorm / rv.length());
 		//System.out.println("vel_port: " + vel_portion);
 		
 		//Find overlap of particles
 		double overlap = r - working_dist;
-		overlap = Math.min(overlap,0.5);
+		if (overlap > 1 && rv.length() < 1)
+		{
+			//System.out.println("This is true");
+			return;
+		}
+		//overlap = Math.min(overlap,radius * 0.1);
 		//Find minimum restitution for intuitive results
 		//double e = Math.min(this.elasticity, workingPart.elasticity);
 		
-		double repulse = 10000;
-		double press_acc = repulse * overlap;
+		double repulse = 50000000;
+		double press_acc = repulse * overlap;//Math.log((overlap*10)+1
 		
 		//System.out.println("press_acc: " + press_acc);
 		
@@ -189,8 +191,8 @@ class Particle
 		Vec3 press_vel = unit_norm.mult(press_acc * timestep);
 		//System.out.println("press.x: " + press_vec.x);
 		//System.out.println("vel1: " + this.vel.x);
-		workingPart.vel.addi_vec(press_vel.div(workingPart.mass));//workingPart.mass
-		this.vel.addi_vec(press_vel.mult(-1/this.mass));
+		workingPart.vel.addi_vec(press_vel.div(workingPart.mass));
+		this.vel.addi_vec(press_vel.div(-this.mass));
 		//System.out.println("vel2: " + this.vel.x);
 		
 	}
