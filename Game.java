@@ -61,13 +61,13 @@ public class Game extends JFrame { //implements ActionListener
 		}
 		
 		double timestep = 1/accuracy_multiple;
-		double secs_per_sec = 100;
+		double secs_per_sec = 2;
 		this.model.timestep = timestep;
 		this.model.secs_per_sec = secs_per_sec;
 		for (int i = 0; i < accuracy_multiple * secs_per_sec; i++)
 			model.update();
 		
-		repaint(); // Indirectly calls View.paintComponent
+		repaint(); // Indirectly calls View.paintComponent in its own thread (?)
 		
 		//try{
 		//TimeUnit.MILLISECONDS.sleep(1);
