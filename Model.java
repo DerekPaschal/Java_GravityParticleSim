@@ -31,7 +31,7 @@ class Model
 	boolean cameraLeft;
 	boolean cameraRight;
 	
-	boolean correct_pos;
+	double density;
 	
 	///State '1' is making central "suns" and clicking creates light orbiting bodys
 	///State '2' creates a collapsing disk of light particles, which you shoot with heavier bodies
@@ -58,9 +58,9 @@ class Model
 		this.cameraDown = false;
 		this.cameraLeft = false;
 		this.cameraRight = false;
-		this.correct_pos = false; 
 		
 		this.state = 1;
+		this.density = 500000;
 	}
 
 	
@@ -236,7 +236,7 @@ class Model
 		{
 			new_part_pos.replace(new_x, new_y);
 			int new_size = 2;
-			double new_mass = 2 * 3.14 * new_size * new_size * 200000; //Mass dependent on Area of Circle
+			double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			//double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * 40000); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
 			createOrbitingParticle(new_part_pos, new_size, new_mass, true, new Vec3(250,250,250));
@@ -261,10 +261,10 @@ class Model
 			new_drag_xy.replace(new_x, new_y);
 			
 			Vec3 vel = new_drag_xy.sub_vec(new_part_pos);
-			vel.divi(200);
+			vel.divi(100);
 			
-			double new_size = 5;
-			double new_mass = 2 * 3.14 * new_size * new_size * 200000; //Mass dependent on Area of Circle
+			double new_size = 6;
+			double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			//double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  100000);
 			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, vel, new_size, 0.9, new_mass, true, RGB));
 		}
@@ -278,6 +278,11 @@ class Model
 	public void RightClick(int new_x, int new_y)
 	{
 		if (state == 1)
+		{
+			new_part_pos.replace(new_x, new_y);
+		}
+		
+		if (state == 2)
 		{
 			new_part_pos.replace(new_x, new_y);
 		}
@@ -297,9 +302,21 @@ class Model
 			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
 			if (new_size < 5)
 				new_size = 5;
-			double new_mass = 2 * 3.14 * new_size * new_size * 200000;
+			double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			//double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * 100000);
 			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 1.0, new_mass, false, RGB));
+		}
+		
+		if (state == 2)
+		{
+			Vec3 RGB = new Vec3((int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91);
+			new_drag_xy.replace(new_x, new_y);
+			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
+			if (new_size < 3)
+				new_size = 3;
+			double new_mass = 2 * 3.14 * new_size * new_size * this.density;
+			//double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * 100000);
+			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 1.0, new_mass, true, RGB));
 		}
 	}
 	
