@@ -254,6 +254,7 @@ class Model
 	///------------------------------------------------------------------
 	public void OnClick(int new_x, int new_y) 
 	{
+		//State 1: Creates a Small Orbiting Bouncy Particle around the Center of Mass
 		if (state == 1)
 		{
 			new_part_pos.replace(new_x, new_y);
@@ -264,6 +265,7 @@ class Model
 			createOrbitingParticle(new_part_pos, new_size, new_mass, true, 0.9, new Vec3(250,250,250));
 		}
 		
+		//State 2: Gets Current Mouse Position, stores in new_part_pos
 		if (state == 2)
 		{
 			new_part_pos.replace(new_x, new_y);
@@ -277,6 +279,7 @@ class Model
 	///------------------------------------------------------------------
 	public void ClickRelease(int new_x, int new_y)
 	{
+		//State 2: Creates randomly colored bouncy particle; velocity related to mouse position from Click
 		if (state == 2)
 		{
 			Vec3 RGB = new Vec3((int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91);
@@ -299,11 +302,13 @@ class Model
 	///------------------------------------------------------------------
 	public void RightClick(int new_x, int new_y)
 	{
+		//State 1: Gets Current Mouse Position, stores in new_part_pos 
 		if (state == 1)
 		{
 			new_part_pos.replace(new_x, new_y);
 		}
 		
+		//State 2: Gets Current Mouse Position, stores in new_part_pos 
 		if (state == 2)
 		{
 			new_part_pos.replace(new_x, new_y);
