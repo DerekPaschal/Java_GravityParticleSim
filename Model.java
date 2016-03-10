@@ -279,7 +279,7 @@ class Model
 	///------------------------------------------------------------------
 	public void ClickRelease(int new_x, int new_y)
 	{
-		//State 2: Creates randomly colored bouncy particle; velocity related to mouse position from Click
+		//State 2: Creates Randomly Colored Bouncy Particle; Velocity related to Current Mouse Position distance from new_part_pos
 		if (state == 2)
 		{
 			Vec3 RGB = new Vec3((int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91);
@@ -322,6 +322,7 @@ class Model
 	///------------------------------------------------------------------
 	public void RightRelease(int new_x, int new_y)
 	{
+		//State 1: Creates Randomly Colored Particle; Radius and Mass related to Current Mouse Position distance from new_part_pos
 		if (state == 1)
 		{
 			Vec3 RGB = new Vec3((int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91);
@@ -334,6 +335,7 @@ class Model
 			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 1.0, new_mass, false, RGB));
 		}
 		
+		//State 2: Creates Randomly Colored Bouncy Particle; Radius and Mass related to Current Mouse Position distance from new_part_pos
 		if (state == 2)
 		{
 			Vec3 RGB = new Vec3((int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91);
