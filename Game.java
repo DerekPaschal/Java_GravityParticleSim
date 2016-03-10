@@ -61,7 +61,7 @@ public class Game extends JFrame { //implements ActionListener
 		}
 		
 		double timestep = 1/accuracy_multiple;
-		double secs_per_sec = 10;
+		double secs_per_sec = 5;
 		this.model.timestep = timestep;
 		this.model.secs_per_sec = secs_per_sec;
 		for (int i = 0; i < accuracy_multiple * secs_per_sec; i++)

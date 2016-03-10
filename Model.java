@@ -60,17 +60,19 @@ class Model
 		this.cameraLeft = false;
 		this.cameraRight = false;
 		
+		
+		//defaults
 		this.state = 1;
-		this.density = 500000;
+		this.density = 1000000;
 		this.elasticity = 0.5;
 	}
 
 	
 	
 	
-	////
-	//// Particle Field Management
-	////
+	///
+	/// Particle Field Management
+	///
 
 	
 	///------------------------------------------------------------------
@@ -225,9 +227,9 @@ class Model
 	
 	
 	
-	////
-	//// Mouse Actions
-	////
+	///
+	/// Mouse Actions
+	///
 	
 	
 	///------------------------------------------------------------------
@@ -330,9 +332,9 @@ class Model
 	
 	
 	
-	////
-	//// Creators
-	////
+	///
+	/// Creators
+	///
 	
 	
 	public void createOrbitingParticle(Vec3 new_pos, double new_size, double new_mass, boolean bounce, Vec3 RGB)
@@ -387,12 +389,14 @@ class Model
 		while (partIterator.hasNext())
 		{
 			this.workingPart = partIterator.next();
-			
-			distance_sqrd = Math.abs((workingPart.pos.x - testingPart.pos.x)*(workingPart.pos.x - testingPart.pos.x) +
-							(workingPart.pos.y - testingPart.pos.y)*(workingPart.pos.y - testingPart.pos.y));
-			r2 = (testingPart.radius + workingPart.radius)*(testingPart.radius + workingPart.radius);
-			if (distance_sqrd < r2)
-				return false;
+			if (workingPart.bounces)
+			{
+				distance_sqrd = Math.abs((workingPart.pos.x - testingPart.pos.x)*(workingPart.pos.x - testingPart.pos.x) +
+								(workingPart.pos.y - testingPart.pos.y)*(workingPart.pos.y - testingPart.pos.y));
+				r2 = (testingPart.radius + workingPart.radius)*(testingPart.radius + workingPart.radius);
+				if (distance_sqrd < r2)
+					return false;
+			}
 		}
 		return true;
 	}
