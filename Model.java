@@ -20,9 +20,9 @@ class Model
 	Vec3 new_part_pos;
 	Vec3 new_drag_xy;
 	Vec3 mass_center;
-	Vec3 mass_center_temp;
+	private Vec3 mass_center_temp;
 	double total_mass;
-	double total_mass_temp;
+	private double total_mass_temp;
 	
 	boolean load_new;
 	boolean need_to_clear;
@@ -30,26 +30,24 @@ class Model
 	boolean cameraDown;
 	boolean cameraLeft;
 	boolean cameraRight;
-	
 	double density;
-	double elasticity;
 	
 	///State '1' is making central "suns" and clicking creates light orbiting bodys
 	///State '2' creates a collapsing disk of light particles, which you shoot with heavier bodies
-	///
 	int state;
 		
 	Model(int new_screen_x, int new_screen_y) throws IOException
 	{
+		//Initializations
 		window = new Vec3(new_screen_x, new_screen_y);
 		this.m_rand = new Random();
 		this.m_part_list = new LinkedList<Particle>();
 		mass_center = new Vec3();
-		mass_center_temp = new Vec3();
-		
 		total_mass = 0.0;
-		total_mass_temp = 0.0;
 		
+		//Defaults
+		mass_center_temp = new Vec3();
+		total_mass_temp = 0.0;
 		new_part_pos = new Vec3();
 		new_drag_xy = new Vec3();
 		this.part_not_added = new LinkedList<Particle>();
@@ -59,12 +57,8 @@ class Model
 		this.cameraDown = false;
 		this.cameraLeft = false;
 		this.cameraRight = false;
-		
-		
-		//defaults
 		this.state = 1;
 		this.density = 1000000;
-		this.elasticity = 0.5;
 	}
 
 	
@@ -83,7 +77,7 @@ class Model
 	///------------------------------------------------------------------ 
 	public void update()
 	{	
-	
+		//Reset running totals for center of mass and total mass
 		total_mass_temp = 0.0;
 		mass_center_temp.replace(0.0,0.0,0.0);
 		
@@ -101,18 +95,23 @@ class Model
 			}
 			else
 			{
+				//Running totals for center of mass and total mass
 				mass_center_temp.addi(workingPart.mass * workingPart.pos.x, workingPart.mass * workingPart.pos.y);
 				total_mass_temp += workingPart.mass;
 			}
 		}
 		
+		//How to calculate center of mass
 		if (total_mass_temp >= 1)
 			mass_center_temp.divi(total_mass_temp);
 		else
 			mass_center_temp.replace(-10, -10);
 		
+		//Apply center of mass to public variables
 		mass_center.clone(mass_center_temp);
 		total_mass = total_mass_temp;
+		
+		
 		
 		// Update Particle velocities
 		partIterator = m_part_list.listIterator();
@@ -121,6 +120,8 @@ class Model
 			workingPart = partIterator.next();
 			workingPart.updateVel();
 		}
+		
+		
 		
 		// Update Particle positions
 		partIterator = m_part_list.listIterator();
@@ -131,6 +132,7 @@ class Model
 		}
 		
 		
+		
 		//Check if Particle Field needs to be cleared
 		if (need_to_clear)
 		{
@@ -138,15 +140,17 @@ class Model
 			need_to_clear = false;
 		}
 		
-		//Check if cameraUp
+		
+		
+		//Check if camera should be moved
 		if (cameraDown)
-			movePartsUp();
-		if (cameraUp)
 			movePartsDown();
+		if (cameraUp)
+			movePartsUp();
 		if (cameraLeft)
-			movePartsRight();
-		if (cameraRight)
 			movePartsLeft();
+		if (cameraRight)
+			movePartsRight();
 		
 		//Add the new particles that have been waiting to enter the list
 		if (load_new)
@@ -154,12 +158,17 @@ class Model
 	}
 	
 	
-	
+	///------------------------------------------------------------------
+	/// Adds all Particles in part_not_added to the m_part_list if
+	/// they meet requirements.
+	///------------------------------------------------------------------ 
 	public void addWaitingParts()
 	{
 		//Do not use Iterator here, part_not_added is not protected
 		for (int i = 0; i < part_not_added.size(); i++)	
 		{
+			//Allow new particle if it does not intersect with 
+			//Particles already in the list
 			if (allow_new_part(part_not_added.get(i)))
 				m_part_list.add(part_not_added.get(i));
 			
@@ -168,7 +177,10 @@ class Model
 	}
 	
 	
-	
+	///------------------------------------------------------------------
+	/// Completely Clears the m_part_list of all entries,
+	/// reseting the Particle Field.
+	///------------------------------------------------------------------ 
 	public void Clear()
 	{
 		partIterator = m_part_list.listIterator();
@@ -180,7 +192,11 @@ class Model
 	}
 	
 	
-	
+	///------------------------------------------------------------------
+	/// This set of functions moves the particles Up, Down, Left, or 
+	/// Right an amount dependent on timestep and secs_per_sec when 
+	/// their respective booleans are true.
+	///------------------------------------------------------------------ 
 	public void movePartsUp()
 	{
 		partIterator = m_part_list.listIterator();
@@ -245,7 +261,7 @@ class Model
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * density); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
-			createOrbitingParticle(new_part_pos, new_size, new_mass, true, new Vec3(250,250,250));
+			createOrbitingParticle(new_part_pos, new_size, new_mass, true, 0.9, new Vec3(250,250,250));
 		}
 		
 		if (state == 2)
@@ -267,12 +283,12 @@ class Model
 			new_drag_xy.replace(new_x, new_y);
 			
 			Vec3 vel = new_drag_xy.sub_vec(new_part_pos);
-			vel.divi(100);
+			vel.divi(80);
 			
 			double new_size = 6;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.density);
-			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, vel, new_size, elasticity, new_mass, true, RGB));
+			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, vel, new_size, 0.15, new_mass, true, RGB));
 		}
 	}
 	
@@ -310,7 +326,7 @@ class Model
 				new_size = 5;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.density);
-			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, elasticity, new_mass, false, RGB));
+			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 1.0, new_mass, false, RGB));
 		}
 		
 		if (state == 2)
@@ -322,7 +338,7 @@ class Model
 				new_size = 3;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * density);
-			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, elasticity, new_mass, true, RGB));
+			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 0.15, new_mass, true, RGB));
 		}
 	}
 	
@@ -337,7 +353,7 @@ class Model
 	///
 	
 	
-	public void createOrbitingParticle(Vec3 new_pos, double new_size, double new_mass, boolean bounce, Vec3 RGB)
+	public void createOrbitingParticle(Vec3 new_pos, double new_size, double new_mass, boolean bounce, double elasticity, Vec3 RGB)
 	{
 			//Calculate the orbital velocity of the new particle
 			double cm_distance = Math.sqrt(Math.pow(mass_center.x - new_pos.x,2) + Math.pow(mass_center.y - new_pos.y,2));
@@ -356,9 +372,8 @@ class Model
 	}
 	
 	
-	//This is not intellegent enough to work, do not use
 	public void createPartDisk(double sqrd_radius, int parts, boolean orbiting, boolean balanced, Vec3 center, 
-										double new_size, double new_mass, boolean bounce, Vec3 RGB)
+										double new_size, double new_mass, boolean bounce,double elasticity, Vec3 RGB)
 	{
 		double r;
 		double theta;

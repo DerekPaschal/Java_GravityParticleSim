@@ -102,7 +102,7 @@ class Particle
 						pressureCollision();
 						//bounceCollision();
 					}
-					else
+					//else
 						absorbCollision();
 					
 					//Apply gravity
@@ -185,7 +185,7 @@ class Particle
 		//Find minimum restitution for intuitive results
 		//double e = Math.min(this.elasticity, workingPart.elasticity);
 		
-		double repulse = 10000000;
+		double repulse = 10000000 * this.radius;
 		double press_acc = restitution * repulse * overlap;//Math.log((overlap*10)+1)
 		
 		//System.out.println("press_acc: " + press_acc);
@@ -194,8 +194,8 @@ class Particle
 		Vec3 press_vel = unit_norm.mult(press_acc * timestep);
 		//System.out.println("press.x: " + press_vec.x);
 		//System.out.println("vel1: " + this.vel.x);
-		workingPart.vel.addi_vec(press_vel.div(workingPart.mass));
-		this.vel.addi_vec(press_vel.div(-this.mass));
+		workingPart.vel.addi_vec(press_vel.div(workingPart.mass));//workingPart.mass
+		this.vel.addi_vec(press_vel.div(-this.mass)); //this.mass
 		//System.out.println("vel2: " + this.vel.x);
 		
 	}
@@ -277,7 +277,7 @@ class Particle
 			smaller = this;
 		}
 										
-		if (working_dist >= larger.radius - (smaller.radius/2))
+		if (working_dist >= larger.radius - (smaller.radius/1.5))
 			return;
 		
 		smaller.remove = true;
@@ -340,7 +340,7 @@ class Particle
 		g2.setColor(new Color((int)RGB.x, (int)RGB.y, (int)RGB.z));
 		double late_const = 1.0;
 		double draw_radius = radius;
-		if (draw_radius >= 6)
+		if (draw_radius >= 6 && !bounces)
 		{
 			draw_diameter = (int)Math.round(draw_radius *2.2);
 			draw_pos_x = (int)Math.round(this.pos.x - draw_radius * 1.1);

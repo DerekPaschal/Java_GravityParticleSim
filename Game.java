@@ -39,18 +39,19 @@ public class Game extends JFrame { //implements ActionListener
 		view.addMouseListener(mousecontroller);
 		view.addKeyListener(keycontroller);
 		
-		//System.out.println("screen_x: " + screen_x);
-		//System.out.println("screen_y: " + screen_y);
-		//view.screen_x = screen_x;
-		//view.screen_y = screen_y;
-		//model.window = new Vec3 (screen_x, screen_y);
-		
 		//new Timer(17, this).start(); // Indirectly calls actionPerformed at regular intervals
 		DoSim();
+	}
+	
+	public void DoSim()
+	{
+		while (true)
+			SimControl();
 	}
 
 	public void SimControl()
 	{
+		//Begin timer
 		long new_frame_time = System.nanoTime();
 		
 		double accuracy_multiple = 10;
@@ -59,9 +60,9 @@ public class Game extends JFrame { //implements ActionListener
 			System.out.println("Accuracy must be set to 1 or higher!");
 			System.exit(0);
 		}
-		
 		double timestep = 1/accuracy_multiple;
 		double secs_per_sec = 5;
+		
 		this.model.timestep = timestep;
 		this.model.secs_per_sec = secs_per_sec;
 		for (int i = 0; i < accuracy_multiple * secs_per_sec; i++)
@@ -73,6 +74,7 @@ public class Game extends JFrame { //implements ActionListener
 		//TimeUnit.MILLISECONDS.sleep(1);
 		//} catch (InterruptedException e){}
 		
+		//End Timer
 		long elapsed_frame_time = (System.nanoTime() - new_frame_time) / 1000000;
 		
 		
@@ -86,12 +88,6 @@ public class Game extends JFrame { //implements ActionListener
 			TimeUnit.MILLISECONDS.sleep(wait_time);
 			} catch (InterruptedException e){}
 		}
-	}
-	
-	public void DoSim()
-	{
-		while (true)
-			SimControl();
 	}
 
 	public static void main(String[] args) throws Exception {
