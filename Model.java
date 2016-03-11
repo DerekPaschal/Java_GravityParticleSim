@@ -24,7 +24,6 @@ class Model
 	double total_mass;
 	private double total_mass_temp;
 	
-	boolean load_new;
 	boolean need_to_clear;
 	boolean cameraUp;
 	boolean cameraDown;
@@ -52,7 +51,6 @@ class Model
 		new_drag_xy = new Vec3();
 		this.part_not_added = new LinkedList<Particle>();
 		need_to_clear = false;
-		this.load_new = true;
 		this.cameraUp = false;
 		this.cameraDown = false;
 		this.cameraLeft = false;
@@ -73,10 +71,20 @@ class Model
 	/// This calls the functions which update the Particles Acceleration,
 	/// Velocity, and Position Vectors according to the Euler Integrator
 	/// method.  It is also responisble for adding new particles to the 
-	/// list without disrupting the Iterators.
+	/// list without disrupting the Iterators, calculating Center
+	/// of Mass, Clearing the Field, and Moving the Camera.
 	///------------------------------------------------------------------ 
 	public void update()
 	{	
+		//Check if Particle Field needs to be cleared
+		if (need_to_clear)
+		{
+			Clear();
+			need_to_clear = false;
+		}
+	
+	
+	
 		//Reset running totals for center of mass and total mass
 		total_mass_temp = 0.0;
 		mass_center_temp.replace(0.0,0.0,0.0);
@@ -105,7 +113,7 @@ class Model
 		if (total_mass_temp >= 1)
 			mass_center_temp.divi(total_mass_temp);
 		else
-			mass_center_temp.replace(-10, -10);
+			mass_center_temp.replace(window.x/2, window.y/2);
 		
 		//Apply center of mass to public variables
 		mass_center.clone(mass_center_temp);
@@ -133,15 +141,6 @@ class Model
 		
 		
 		
-		//Check if Particle Field needs to be cleared
-		if (need_to_clear)
-		{
-			Clear();
-			need_to_clear = false;
-		}
-		
-		
-		
 		//Check if camera should be moved
 		if (cameraDown)
 			movePartsDown();
@@ -153,8 +152,7 @@ class Model
 			movePartsRight();
 		
 		//Add the new particles that have been waiting to enter the list
-		if (load_new)
-			addWaitingParts();
+		addWaitingParts();
 	}
 	
 	
@@ -164,15 +162,17 @@ class Model
 	///------------------------------------------------------------------ 
 	public void addWaitingParts()
 	{
+		synchronized(part_not_added)
+		{
 		//Do not use Iterator here, part_not_added is not protected
 		for (int i = 0; i < part_not_added.size(); i++)	
 		{
 			//Allow new particle if it does not intersect with 
 			//Particles already in the list
-			if (allow_new_part(part_not_added.get(i)))
-				m_part_list.add(part_not_added.get(i));
-			
+				if (allow_new_part(part_not_added.get(i)))
+					m_part_list.add(part_not_added.get(i));
 			part_not_added.remove(i);
+		}
 		}
 	}
 	
@@ -253,7 +253,7 @@ class Model
 	/// button is Clicked, depending on the current State.
 	///------------------------------------------------------------------
 	public void OnClick(int new_x, int new_y) 
-	{
+	{	
 		//State 1: Creates a Small Orbiting Bouncy Particle around the Center of Mass
 		if (state == 1)
 		{
@@ -262,7 +262,7 @@ class Model
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * density); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
-			createOrbitingParticle(new_part_pos, new_size, new_mass, true, 0.9, new Vec3(250,250,250));
+			createOrbitingParticle(new_part_pos, new_size, new_mass, true, 0.95, new Vec3(250,250,250));
 		}
 		
 		//State 2: Gets Current Mouse Position, stores in new_part_pos
@@ -291,7 +291,8 @@ class Model
 			double new_size = 6;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.density);
-			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, vel, new_size, 0.15, new_mass, true, RGB));
+			createNewParticle(new_part_pos, vel, new_size, 0.4, new_mass, true, RGB);
+			//this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, vel, new_size, 0.4, new_mass, true, RGB));
 		}
 	}
 	
@@ -321,7 +322,7 @@ class Model
 	/// button is Released, depending on the current State.
 	///------------------------------------------------------------------
 	public void RightRelease(int new_x, int new_y)
-	{
+	{	
 		//State 1: Creates Randomly Colored Particle; Radius and Mass related to Current Mouse Position distance from new_part_pos
 		if (state == 1)
 		{
@@ -332,7 +333,7 @@ class Model
 				new_size = 5;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.density);
-			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 1.0, new_mass, false, RGB));
+			createNewParticle(new_part_pos, new Vec3(), new_size, 1.0, new_mass, false, RGB);
 		}
 		
 		//State 2: Creates Randomly Colored Bouncy Particle; Radius and Mass related to Current Mouse Position distance from new_part_pos
@@ -345,7 +346,7 @@ class Model
 				new_size = 3;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * density);
-			this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, new Vec3(), new_size, 0.15, new_mass, true, RGB));
+			createNewParticle(new_part_pos, new Vec3(), new_size, 0.4, new_mass, true, RGB);
 		}
 	}
 	
@@ -360,46 +361,68 @@ class Model
 	///
 	
 	
-	public void createOrbitingParticle(Vec3 new_pos, double new_size, double new_mass, boolean bounce, double elasticity, Vec3 RGB)
+	///------------------------------------------------------------------
+	/// A synchronized, safe way to add Particles to the 'waiting list'
+	/// part_not_added, called on whenever a new Particle is to be made.
+	///------------------------------------------------------------------ 
+	public void createNewParticle(Vec3 new_pos, Vec3 new_vel, double new_size, double new_elasticity, double new_mass, boolean bounce, Vec3 RGB)
 	{
-			//Calculate the orbital velocity of the new particle
-			double cm_distance = Math.sqrt(Math.pow(mass_center.x - new_pos.x,2) + Math.pow(mass_center.y - new_pos.y,2));
-			double OrbitV = 0.0;
-			if (cm_distance >= 1)
-				OrbitV = Math.sqrt((GravG * total_mass) / cm_distance);
-			
-			//Find unit tangent direction between particles
-			Vec3 tan = new Vec3(new_pos.y - mass_center.y, mass_center.x - new_pos.x);
-			if (tan.length() >= 0.001)
-				tan.divi(tan.length());
-			
-			//Apply the Orbital Velocity to the Tangent Vector to create an Orbital Velocity vector
-			tan.multi(OrbitV);
-			this.part_not_added.add(new Particle(m_part_list, window, new_pos, tan, new_size, elasticity , new_mass, bounce, RGB));
+		synchronized(part_not_added)
+		{
+			this.part_not_added.add(new Particle(this.m_part_list, this.window, new_pos, new_vel, new_size, new_elasticity , new_mass, bounce, RGB));
+		}
 	}
 	
 	
+	
+	///------------------------------------------------------------------
+	/// Creates a Particle with Inital Values from Arguments that Orbits
+	/// around the current Center of Mass.
+	///------------------------------------------------------------------ 
+	public void createOrbitingParticle(Vec3 new_pos, double new_size, double new_mass, boolean bounce, double elasticity, Vec3 RGB)
+	{	
+		//Calculate the orbital velocity of the new particle
+		double cm_distance = Math.sqrt(Math.pow(mass_center.x - new_pos.x,2) + Math.pow(mass_center.y - new_pos.y,2));
+		double OrbitV = 0.0;
+		if (cm_distance >= 1)
+			OrbitV = Math.sqrt((GravG * total_mass) / cm_distance);
+		
+		//Find unit tangent direction between particles
+		Vec3 tan = new Vec3(new_pos.y - mass_center.y, mass_center.x - new_pos.x);
+		if (tan.length() >= 0.001)
+			tan.divi(tan.length());
+		
+		//Apply the Orbital Velocity to the Tangent Vector to create an Orbital Velocity vector
+		tan.multi(OrbitV);
+		createNewParticle(new_pos, tan, new_size, elasticity , new_mass, bounce, RGB);
+	}
+	
+	///------------------------------------------------------------------
+	/// Creates a set of Particles in a Disk.  The Radius, Number of
+	/// Particles, Spin, and Center of the Disk are Arguments.  The
+	/// Radius, Mass, Bounce, Elasticity, and Color of the particles
+	/// are also Arguments.
+	///------------------------------------------------------------------ 
 	public void createPartDisk(double sqrd_radius, int parts, boolean orbiting, boolean balanced, Vec3 center, 
 										double new_size, double new_mass, boolean bounce,double elasticity, Vec3 RGB)
 	{
+		
 		double r;
 		double theta;
 		double x;
 		double y;
 		if (balanced)
 		{
-			this.load_new = false;
-			for (int i=0; i<parts;i++)
+			for (int i=0; i < parts; i++)
 			{
 				r = m_rand.nextDouble() * sqrd_radius;
 				theta = m_rand.nextDouble() * 6.28;
 				x = (Math.sqrt(r) * Math.cos(theta)) + center.x;
 				y = (Math.sqrt(r) * Math.sin(theta)) + center.y;
 				Vec3 new_pos = new Vec3(x,y);
-				this.part_not_added.add(new Particle(m_part_list, window, new_pos, new Vec3(), new_size, elasticity, new_mass, bounce, RGB));
+				createNewParticle(new_pos, new Vec3(), new_size, elasticity, new_mass, bounce, RGB);
 			}
 		}
-		this.load_new = true;
 	}
 	
 	

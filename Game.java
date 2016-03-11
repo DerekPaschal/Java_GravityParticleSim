@@ -61,7 +61,11 @@ public class Game extends JFrame { //implements ActionListener
 			System.exit(0);
 		}
 		double timestep = 1/accuracy_multiple;
-		double secs_per_sec = 5;
+		double secs_per_sec = 1;
+		if(this.model.state ==1)
+			secs_per_sec = 5;
+		if(this.model.state == 2)
+			secs_per_sec = 1;
 		
 		this.model.timestep = timestep;
 		this.model.secs_per_sec = secs_per_sec;
