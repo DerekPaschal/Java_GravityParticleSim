@@ -12,6 +12,7 @@ public class Game extends JFrame { //implements ActionListener
 	View view;
 	int screen_x;
 	int screen_y;
+	double fps_round;
 
 	public Game() throws Exception 
 	{
@@ -39,12 +40,14 @@ public class Game extends JFrame { //implements ActionListener
 		view.addMouseListener(mousecontroller);
 		view.addKeyListener(keycontroller);
 		
+		this.fps_round = 0.0;
+		
 		//new Timer(17, this).start(); // Indirectly calls actionPerformed at regular intervals
 		DoSim();
 	}
 	
 	public void DoSim()
-	{
+	{	
 		while (true)
 			SimControl();
 	}
@@ -54,21 +57,19 @@ public class Game extends JFrame { //implements ActionListener
 		//Begin timer
 		long new_frame_time = System.nanoTime();
 		
-		double accuracy_multiple = 10;
+		//double accuracy_multiple = 10;
+		
+		int accuracy_multiple = model.accuracy_multiple;
+		int secs_per_sec = model.secs_per_sec;
 		if (accuracy_multiple < 1)
 		{
 			System.out.println("Accuracy must be set to 1 or higher!");
 			System.exit(0);
 		}
-		double timestep = 1/accuracy_multiple;
-		double secs_per_sec = 1;
-		if(this.model.state ==1)
-			secs_per_sec = 5;
-		if(this.model.state == 2)
-			secs_per_sec = 1;
 		
+		double timestep = 1.0/accuracy_multiple;
 		this.model.timestep = timestep;
-		this.model.secs_per_sec = secs_per_sec;
+		//this.model.secs_per_sec = secs_per_sec;
 		for (int i = 0; i < accuracy_multiple * secs_per_sec; i++)
 			model.update();
 		
@@ -78,18 +79,16 @@ public class Game extends JFrame { //implements ActionListener
 		//TimeUnit.MILLISECONDS.sleep(1);
 		//} catch (InterruptedException e){}
 		
+		
 		//End Timer
-		long elapsed_frame_time = (System.nanoTime() - new_frame_time) / 1000000;
-		
-		
+		long wait_time =(long)(17000000 - (System.nanoTime() - new_frame_time));
 		
 		//This block is not measured by wait_time
-		int wait_time =(int) (17 - elapsed_frame_time);
-		this.view.is_lag = (wait_time < 0);
-		if (!this.view.is_lag)
+		this.view.is_lag = (wait_time < -1000);
+		if (wait_time > 1000)
 		{
 			try{
-			TimeUnit.MILLISECONDS.sleep(wait_time);
+			TimeUnit.NANOSECONDS.sleep(wait_time);
 			} catch (InterruptedException e){}
 		}
 	}

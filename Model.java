@@ -8,15 +8,15 @@ class Model
 {	
 	static final double GravG = 0.000000000066740831;//Gravitational constant
 
-	Random m_rand;
 	LinkedList<Particle> m_part_list;
 	LinkedList<Particle> part_not_added;
-	ListIterator<Particle> partIterator;
-	
+	//ListIterator<Particle> partIterator;
 	Particle workingPart;
+	
 	Vec3 window;
 	double timestep;
-	double secs_per_sec;
+	int secs_per_sec;
+	int accuracy_multiple;
 	Vec3 new_part_pos;
 	Vec3 new_drag_xy;
 	Vec3 mass_center;
@@ -39,7 +39,6 @@ class Model
 	{
 		//Initializations
 		window = new Vec3(new_screen_x, new_screen_y);
-		this.m_rand = new Random();
 		this.m_part_list = new LinkedList<Particle>();
 		mass_center = new Vec3();
 		total_mass = 0.0;
@@ -56,7 +55,10 @@ class Model
 		this.cameraLeft = false;
 		this.cameraRight = false;
 		this.state = 1;
-		this.density = 1000000;
+		this.accuracy_multiple = 10;
+		this.timestep = 1.0/accuracy_multiple;
+		this.secs_per_sec = 5;
+		this.density = 2000000;
 	}
 
 	
@@ -66,6 +68,7 @@ class Model
 	/// Particle Field Management
 	///
 
+	
 	
 	///------------------------------------------------------------------
 	/// This calls the functions which update the Particles Acceleration,
@@ -84,61 +87,8 @@ class Model
 		}
 	
 	
-	
-		//Reset running totals for center of mass and total mass
-		total_mass_temp = 0.0;
-		mass_center_temp.replace(0.0,0.0,0.0);
-		
-		// Update Particle accelerations and center of mass
-		partIterator = m_part_list.listIterator();
-		while (partIterator.hasNext())
-		{
-			workingPart = partIterator.next();
-			
-			workingPart.timestep = this.timestep;
-			if (workingPart.updateAcc())
-			{
-				//System.out.println("Remove that part!");
-				partIterator.remove();
-			}
-			else
-			{
-				//Running totals for center of mass and total mass
-				mass_center_temp.addi(workingPart.mass * workingPart.pos.x, workingPart.mass * workingPart.pos.y);
-				total_mass_temp += workingPart.mass;
-			}
-		}
-		
-		//How to calculate center of mass
-		if (total_mass_temp >= 1)
-			mass_center_temp.divi(total_mass_temp);
-		else
-			mass_center_temp.replace(window.x/2, window.y/2);
-		
-		//Apply center of mass to public variables
-		mass_center.clone(mass_center_temp);
-		total_mass = total_mass_temp;
-		
-		
-		
-		// Update Particle velocities
-		partIterator = m_part_list.listIterator();
-		while (partIterator.hasNext())
-		{
-			workingPart = partIterator.next();
-			workingPart.updateVel();
-		}
-		
-		
-		
-		// Update Particle positions
-		partIterator = m_part_list.listIterator();
-		while (partIterator.hasNext())
-		{
-			workingPart = partIterator.next();
-			workingPart.updatePos();
-		}
-		
+		//Perform Euler Integration on Particles
+		EulerIntegrate();
 		
 		
 		//Check if camera should be moved
@@ -151,9 +101,78 @@ class Model
 		if (cameraRight)
 			movePartsRight();
 		
+		
 		//Add the new particles that have been waiting to enter the list
 		addWaitingParts();
+		
+		Thread.yield();
 	}
+	
+	
+	
+	public void EulerIntegrate()
+	{
+		//Reset running totals for center of mass and total mass
+		total_mass_temp = 0.0;
+		mass_center_temp.replace(0.0,0.0,0.0);
+		
+		synchronized(m_part_list)
+		{
+			// Update Particle accelerations and center of mass
+			ListIterator<Particle> partIterator = m_part_list.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				
+				workingPart.timestep = this.timestep;
+				if (workingPart.updateAcc())
+				{
+					//System.out.println("Remove that part!");
+					partIterator.remove();
+				}
+				else
+				{
+					//Running totals for center of mass and total mass
+					mass_center_temp.addi(workingPart.mass * workingPart.pos.x, workingPart.mass * workingPart.pos.y);
+					total_mass_temp += workingPart.mass;
+				}
+			}
+			
+			//How to calculate center of mass
+			if (total_mass_temp >= 1)
+				mass_center_temp.divi(total_mass_temp);
+			else
+				mass_center_temp.replace(window.x/2, window.y/2);
+			
+			
+			//Apply center of mass to public variables
+			synchronized(mass_center)
+			{
+				mass_center.clone(mass_center_temp);
+				total_mass = total_mass_temp;
+			}
+			
+			
+			// Update Particle velocities
+			partIterator = m_part_list.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				workingPart.updateVel();
+			}
+			
+			
+			
+			// Update Particle positions
+			partIterator = m_part_list.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				workingPart.updatePos();
+			}
+		}
+	}
+	
 	
 	
 	///------------------------------------------------------------------
@@ -162,19 +181,24 @@ class Model
 	///------------------------------------------------------------------ 
 	public void addWaitingParts()
 	{
-		synchronized(part_not_added)
+		synchronized(m_part_list)
 		{
-		//Do not use Iterator here, part_not_added is not protected
-		for (int i = 0; i < part_not_added.size(); i++)	
-		{
-			//Allow new particle if it does not intersect with 
-			//Particles already in the list
-				if (allow_new_part(part_not_added.get(i)))
-					m_part_list.add(part_not_added.get(i));
-			part_not_added.remove(i);
-		}
+			synchronized(part_not_added)
+			{
+				//Do not use Iterator here, part_not_added is not protected
+				for (int i = 0; i < part_not_added.size(); i++)	
+				{
+					//Allow new particle if it does not intersect with 
+					//Particles already in the list
+					if (allow_new_part(part_not_added.get(i)))
+						m_part_list.add(part_not_added.get(i));
+					
+				}
+				ClearNotAdded();
+			}
 		}
 	}
+	
 	
 	
 	///------------------------------------------------------------------
@@ -183,13 +207,32 @@ class Model
 	///------------------------------------------------------------------ 
 	public void Clear()
 	{
-		partIterator = m_part_list.listIterator();
-		while (partIterator.hasNext())
+		synchronized(m_part_list)
 		{
-			workingPart = partIterator.next();
-			partIterator.remove();
+			ListIterator<Particle> partIterator = m_part_list.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				partIterator.remove();
+			}
 		}
 	}
+	
+	
+	
+	public void ClearNotAdded()
+	{
+		synchronized(part_not_added)
+		{
+			ListIterator<Particle> partIterator = part_not_added.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				partIterator.remove();
+			}
+		}
+	}
+	
 	
 	
 	///------------------------------------------------------------------
@@ -199,48 +242,97 @@ class Model
 	///------------------------------------------------------------------ 
 	public void movePartsUp()
 	{
-		partIterator = m_part_list.listIterator();
-		while (partIterator.hasNext())
+		synchronized(m_part_list)
 		{
-			workingPart = partIterator.next();
-			workingPart.pos.y = workingPart.pos.y- (timestep / secs_per_sec);
+			ListIterator<Particle> partIterator = m_part_list.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				workingPart.pos.y = workingPart.pos.y- (timestep / secs_per_sec);
+			}
 		}
 	}
 	
 	
 	public void movePartsDown()
 	{
-		partIterator = m_part_list.listIterator();
-		while (partIterator.hasNext())
+		synchronized(m_part_list)
 		{
-			workingPart = partIterator.next();
-			workingPart.pos.y = workingPart.pos.y+ (timestep / secs_per_sec);
+			ListIterator<Particle> partIterator = m_part_list.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				workingPart.pos.y = workingPart.pos.y+ (timestep / secs_per_sec);
+			}
 		}
 	}
 	
 	
 	public void movePartsLeft()
 	{
-		partIterator = m_part_list.listIterator();
-		while (partIterator.hasNext())
+		synchronized(m_part_list)
 		{
-			workingPart = partIterator.next();
-			workingPart.pos.x = workingPart.pos.x- (timestep / secs_per_sec);
+			ListIterator<Particle> partIterator = m_part_list.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				workingPart.pos.x = workingPart.pos.x- (timestep / secs_per_sec);
+			}
 		}
 	}
 	
 	
 	public void movePartsRight()
 	{
-		partIterator = m_part_list.listIterator();
-		while (partIterator.hasNext())
+		synchronized(m_part_list)
 		{
-			workingPart = partIterator.next();
-			workingPart.pos.x = workingPart.pos.x+ (timestep / secs_per_sec);
+			ListIterator<Particle> partIterator = m_part_list.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				workingPart.pos.x = workingPart.pos.x+ (timestep / secs_per_sec);
+			}
 		}
 	}
 	
 	
+	
+	
+	public void changeState(int i)
+	{
+		switch (i)
+		{
+			case 1:
+				this.Clear();
+				this.ClearNotAdded();
+				this.accuracy_multiple = 10;
+				this.secs_per_sec = 1;
+				this.state = 1;
+				break;
+				
+			case 2:
+				this.ClearNotAdded();
+				this.Clear();
+				this.state = 2;
+				this.accuracy_multiple = 10;
+				this.secs_per_sec = 1;
+				double new_size = 3;
+				//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
+				double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.density * 0.8);
+				this.createPartDisk(200*200,250,false,true, new Vec3(this.window.x/2,this.window.y/2),
+													new_size, 2* new_mass, true, 0.2, new Vec3(250,250,250));
+				break;
+		}
+	}
+	
+	
+	
+	public void changeSpeed(int i)
+	{	
+		int newSpeed = this.secs_per_sec + i;
+		if(newSpeed >= 0)
+			this.secs_per_sec = newSpeed;
+	}
 	
 	
 	///
@@ -262,7 +354,8 @@ class Model
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * density); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
-			createOrbitingParticle(new_part_pos, new_size, new_mass, true, 0.95, new Vec3(250,250,250));
+			Vec3 vel = createOrbitingParticle(new_part_pos, new_size, new_mass, true, 0.95, new Vec3(250,250,250));
+			createNewParticle(new_part_pos, vel, new_size, 0.95, new_mass, true, new Vec3(250,250,250));
 		}
 		
 		//State 2: Gets Current Mouse Position, stores in new_part_pos
@@ -273,16 +366,17 @@ class Model
 	}
 	
 	
+	
 	///------------------------------------------------------------------
 	/// This will perform different actions when the Left Mouse 
 	/// button is Released, depending on the current State.
 	///------------------------------------------------------------------
 	public void ClickRelease(int new_x, int new_y)
-	{
+	{	
 		//State 2: Creates Randomly Colored Bouncy Particle; Velocity related to Current Mouse Position distance from new_part_pos
 		if (state == 2)
 		{
-			Vec3 RGB = new Vec3((int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91);
+			Vec3 RGB = new Vec3((int)(Math.random()*132) + 123,(int)(Math.random()*132) + 123,(int)(Math.random()*132) + 123);
 			new_drag_xy.replace(new_x, new_y);
 			
 			Vec3 vel = new_drag_xy.sub_vec(new_part_pos);
@@ -291,10 +385,11 @@ class Model
 			double new_size = 6;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.density);
-			createNewParticle(new_part_pos, vel, new_size, 0.4, new_mass, true, RGB);
+			createNewParticle(new_part_pos, vel, new_size, 0.2, new_mass, true, RGB);
 			//this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, vel, new_size, 0.4, new_mass, true, RGB));
 		}
 	}
+	
 	
 	
 	///------------------------------------------------------------------
@@ -317,6 +412,7 @@ class Model
 	}
 	
 	
+	
 	///------------------------------------------------------------------
 	/// This will perform different actions when the Right Mouse 
 	/// button is Released, depending on the current State.
@@ -326,7 +422,7 @@ class Model
 		//State 1: Creates Randomly Colored Particle; Radius and Mass related to Current Mouse Position distance from new_part_pos
 		if (state == 1)
 		{
-			Vec3 RGB = new Vec3((int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91);
+			Vec3 RGB = new Vec3((int)(Math.random()*132) + 123, (int)(Math.random()*132) + 123, (int)(Math.random()*132) + 123);
 			new_drag_xy.replace(new_x, new_y);
 			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
 			if (new_size < 5)
@@ -339,14 +435,14 @@ class Model
 		//State 2: Creates Randomly Colored Bouncy Particle; Radius and Mass related to Current Mouse Position distance from new_part_pos
 		if (state == 2)
 		{
-			Vec3 RGB = new Vec3((int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91,(int)(Math.random()*164) + 91);
+			Vec3 RGB = new Vec3((int)(Math.random()*132) + 123, (int)(Math.random()*132) + 123, (int)(Math.random()*132) + 123);
 			new_drag_xy.replace(new_x, new_y);
 			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
 			if (new_size < 3)
 				new_size = 3;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * density);
-			createNewParticle(new_part_pos, new Vec3(), new_size, 0.4, new_mass, true, RGB);
+			createNewParticle(new_part_pos, new Vec3(), new_size, 0.2, new_mass, true, RGB);
 		}
 	}
 	
@@ -379,7 +475,7 @@ class Model
 	/// Creates a Particle with Inital Values from Arguments that Orbits
 	/// around the current Center of Mass.
 	///------------------------------------------------------------------ 
-	public void createOrbitingParticle(Vec3 new_pos, double new_size, double new_mass, boolean bounce, double elasticity, Vec3 RGB)
+	public Vec3 createOrbitingParticle(Vec3 new_pos, double new_size, double new_mass, boolean bounce, double elasticity, Vec3 RGB)
 	{	
 		//Calculate the orbital velocity of the new particle
 		double cm_distance = Math.sqrt(Math.pow(mass_center.x - new_pos.x,2) + Math.pow(mass_center.y - new_pos.y,2));
@@ -394,8 +490,12 @@ class Model
 		
 		//Apply the Orbital Velocity to the Tangent Vector to create an Orbital Velocity vector
 		tan.multi(OrbitV);
-		createNewParticle(new_pos, tan, new_size, elasticity , new_mass, bounce, RGB);
+		return tan;
+		//createNewParticle(new_pos, tan, new_size, elasticity , new_mass, bounce, RGB);
 	}
+	
+	
+	
 	
 	///------------------------------------------------------------------
 	/// Creates a set of Particles in a Disk.  The Radius, Number of
@@ -413,14 +513,17 @@ class Model
 		double y;
 		if (balanced)
 		{
-			for (int i=0; i < parts; i++)
+			synchronized(m_part_list)
 			{
-				r = m_rand.nextDouble() * sqrd_radius;
-				theta = m_rand.nextDouble() * 6.28;
-				x = (Math.sqrt(r) * Math.cos(theta)) + center.x;
-				y = (Math.sqrt(r) * Math.sin(theta)) + center.y;
-				Vec3 new_pos = new Vec3(x,y);
-				createNewParticle(new_pos, new Vec3(), new_size, elasticity, new_mass, bounce, RGB);
+				for (int i=0; i < parts; i++)
+				{
+					r = Math.random() * sqrd_radius;
+					theta = Math.random() * 6.28;
+					x = (Math.sqrt(r) * Math.cos(theta)) + center.x;
+					y = (Math.sqrt(r) * Math.sin(theta)) + center.y;
+					Vec3 new_pos = new Vec3(x,y);
+					createNewParticle(new_pos, new Vec3(), new_size, elasticity, new_mass, bounce, RGB);
+				}
 			}
 		}
 	}
@@ -430,17 +533,20 @@ class Model
 	public boolean allow_new_part(Particle testingPart)
 	{
 		double distance_sqrd, r2;
-		partIterator = this.m_part_list.listIterator();
-		while (partIterator.hasNext())
+		synchronized(m_part_list)
 		{
-			this.workingPart = partIterator.next();
-			if (workingPart.bounces)
+			ListIterator<Particle> partIterator = this.m_part_list.listIterator();
+			while (partIterator.hasNext())
 			{
-				distance_sqrd = Math.abs((workingPart.pos.x - testingPart.pos.x)*(workingPart.pos.x - testingPart.pos.x) +
-								(workingPart.pos.y - testingPart.pos.y)*(workingPart.pos.y - testingPart.pos.y));
-				r2 = (testingPart.radius + workingPart.radius)*(testingPart.radius + workingPart.radius);
-				if (distance_sqrd < r2)
-					return false;
+				this.workingPart = partIterator.next();
+				if (workingPart.bounces)
+				{
+					distance_sqrd = Math.abs((workingPart.pos.x - testingPart.pos.x)*(workingPart.pos.x - testingPart.pos.x) +
+									(workingPart.pos.y - testingPart.pos.y)*(workingPart.pos.y - testingPart.pos.y));
+					r2 = (testingPart.radius + workingPart.radius)*(testingPart.radius + workingPart.radius);
+					if (distance_sqrd < r2)
+						return false;
+				}
 			}
 		}
 		return true;

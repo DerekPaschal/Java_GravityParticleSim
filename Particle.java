@@ -15,10 +15,10 @@ class Particle
 	Vec3 pos;
 	Vec3 vel;
 	Vec3 acc;
-	static Vec3 window;
 	Vec3 RGB;
 	
-	LinkedList<Particle> part_list;
+	static Vec3 window;
+	static LinkedList<Particle> part_list;
 	ListIterator<Particle> partIterator;
 	
 	int draw_diameter;
@@ -44,10 +44,12 @@ class Particle
 		this.acc = new Vec3();
 		this.vel = new Vec3(new_vel);
 		this.pos = new Vec3(new_pos);
-		this.window = new Vec3(new_window);
 		this.RGB = new Vec3(new_RGB);
 		
-		part_list = model_part_list;
+		if (window == null)
+			window = new Vec3(new_window);
+		if (part_list == null)
+			part_list = model_part_list;
 		
 		radius = new_radius;
 		elasticity = new_elasticity;
@@ -79,40 +81,44 @@ class Particle
 		//Wall collision detection
 		if (this.wallCollision())
 			remove = true;
-			
-		partIterator = part_list.listIterator();
 		
 		if (!remove)
 		{
 			this.acc.clear();
 			
-			// Everything in the While Loop is complexity O(n^2), 
-			// so optimize here first
-			while(partIterator.hasNext())
+			synchronized(part_list)
 			{
-				workingPart = partIterator.next();
-				if(workingPart != this)
+				// Everything in the While Loop is complexity O(n^2), 
+				// so optimize here first
+				boolean is_collide = false;
+				partIterator = part_list.listIterator();
+				while(partIterator.hasNext())
 				{
-					//Find distance to particle
-					findDistance();
-				
-					//Detect collisions while we are at it
-					if (bounces)
+					workingPart = partIterator.next();
+					if(workingPart != this)
 					{
-						pressureCollision();
-						//bounceCollision();
+						//Find distance to particle
+						findDistance();
+					
+						//Detect collisions while we are at it
+						if (this.bounces && !workingPart.remove && (workingPart.pos.x > this.pos.x) && workingPart.bounces && (workingPart.mass > 1) && (this.mass > 1))
+						{
+							if (pressureCollision())
+								is_collide = true;
+						}
+						if (!this.bounces || is_collide)
+						{
+							absorbCollision();
+							is_collide = false;
+						}
+						
+						//Apply gravity
+						if (workingPart.mass >= 1)
+							Gravity();
+						
 					}
-					//else
-						absorbCollision();
-					
-					//Apply gravity
-					if (workingPart.mass >= 1)
-						Gravity();
-					
 				}
 			}
-			
-			
 		}
 		return remove;
 	}
@@ -137,22 +143,14 @@ class Particle
 	
 	
 	
-	public void pressureCollision()
+	public boolean pressureCollision()
 	{
-		if (workingPart.remove)
-			return;
-		
-		if (!workingPart.bounces)
-			return;
-		
-		if ((workingPart.mass < 1) && (this.mass < 1))
-			return;
 		
 		//Detect and resolve collisions
 		double r = (workingPart.radius + this.radius);
 										
 		if (working_dist >= r)
-			return;
+			return false;
 		
 		//Find unit normal direction between particles
 		Vec3 norm = new Vec3(workingPart.pos.x - this.pos.x, workingPart.pos.y - this.pos.y);
@@ -160,7 +158,7 @@ class Particle
 		if (norm.length() >= 0.1)
 			unit_norm.divi(norm.length());
 		else
-			return;
+			return true;
 		
 		double restitution = 1.0;
 		//Calculate Relative velocity
@@ -185,7 +183,7 @@ class Particle
 		//Find minimum restitution for intuitive results
 		//double e = Math.min(this.elasticity, workingPart.elasticity);
 		
-		double repulse = 10000000 * this.radius;
+		double repulse = 10000000 * 1000;// * this.radius;
 		double press_acc = restitution * repulse * overlap;//Math.log((overlap*10)+1)
 		
 		//System.out.println("press_acc: " + press_acc);
@@ -198,9 +196,123 @@ class Particle
 		this.vel.addi_vec(press_vel.div(-this.mass)); //this.mass
 		//System.out.println("vel2: " + this.vel.x);
 		
+		return true;
+	}
+
+	
+	
+	public void absorbCollision()
+	{
+		if ((workingPart.mass < 1) && (this.mass < 1))
+			return;
+		
+		Particle larger;
+		Particle smaller;
+		if (this.mass >= workingPart.mass)
+		{
+			larger = this;
+			smaller = workingPart;
+		}
+		else
+		{
+			larger = workingPart;
+			smaller = this;
+		}
+										
+		if (working_dist >= larger.radius - (smaller.radius/1.5))
+			return;
+		
+		smaller.remove = true;
+		double mass_add = smaller.mass + larger.mass;
+		larger.vel.replace( ((larger.vel.x * larger.mass) + (smaller.vel.x * smaller.mass))/mass_add,
+								((larger.vel.y * larger.mass) + (smaller.vel.y * smaller.mass))/mass_add);
+		
+		larger.radius = Math.cbrt((smaller.radius*smaller.radius*smaller.radius) + (larger.radius*larger.radius*larger.radius));
+		//larger.radius = Math.sqrt((smaller.radius*smaller.radius) + (larger.radius*larger.radius));
+		larger.RGB.replace( ((larger.RGB.x * larger.mass) + (smaller.RGB.x * smaller.mass))/mass_add,
+							((larger.RGB.y * larger.mass) + (smaller.RGB.y * smaller.mass))/mass_add,
+							((larger.RGB.z * larger.mass) + (smaller.RGB.z * smaller.mass))/mass_add );
+							
+		larger.pos.replace( ((larger.pos.x * larger.mass) + (smaller.pos.x * smaller.mass))/mass_add,
+							((larger.pos.y * larger.mass) + (smaller.pos.y * smaller.mass))/mass_add,
+							((larger.pos.z * larger.mass) + (smaller.pos.z * smaller.mass))/mass_add );
+							
+		larger.mass += smaller.mass;
 	}
 	
 	
+	
+	public boolean wallCollision()
+	{
+		if (pos.y > (window.y + (radius*1.1)))
+		{
+			return true;
+		}
+		
+		if (pos.y < -(radius*1.1))
+		{
+			return true;
+		}
+		
+		if (pos.x > (window.x + (radius*1.1)))
+		{
+			return true;
+		}
+		
+		if (pos.x < -radius*1.1)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	
+	
+	public void draw(Graphics2D g2)
+	{	
+		g2.setColor(new Color((int)RGB.x, (int)RGB.y, (int)RGB.z));
+		double late_const = 1.0;
+		double draw_radius = radius;
+		if (draw_radius >= 6 && !bounces)
+		{
+			draw_diameter = (int)Math.round(draw_radius *2.2);
+			draw_pos_x = (int)Math.round(this.pos.x - draw_radius * 1.1);
+			draw_pos_y = (int)Math.round(this.pos.y - draw_radius * 1.1);
+			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
+		
+		
+			draw_diameter = (int)Math.round(draw_radius *2);
+			draw_pos_x = (int)Math.round(this.pos.x - draw_radius );
+			draw_pos_y = (int)Math.round(this.pos.y - draw_radius );
+			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
+
+		
+			draw_diameter = (int)Math.round(draw_radius *.9*2);
+			draw_pos_x = (int)Math.round(this.pos.x - draw_radius*.9 );
+			draw_pos_y = (int)Math.round(this.pos.y - draw_radius*.9 );
+			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
+			
+			late_const = 0.80;
+		}
+		
+		draw_diameter = (int)Math.round(draw_radius *late_const*2);
+		draw_pos_x = (int)Math.round(this.pos.x - draw_radius*late_const );
+		draw_pos_y = (int)Math.round(this.pos.y - draw_radius*late_const );
+		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+		g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
+		
+		
+		
+		
+	}
+	
+	
+	
+	
+		/*
 	public void bounceCollision()
 	{
 		if ((workingPart.mass < 1) && (this.mass < 1))
@@ -256,137 +368,7 @@ class Particle
 		if (has_mass && workingPart.bounces)
 			workingPart.vel.replace(norm2_vec.x + tan2_vec.x, norm2_vec.y + tan2_vec.y);
 	}
-	
-	
-	
-	public void absorbCollision()
-	{
-		if ((workingPart.mass < 1) && (this.mass < 1))
-			return;
-		
-		Particle larger;
-		Particle smaller;
-		if (this.mass >= workingPart.mass)
-		{
-			larger = this;
-			smaller = workingPart;
-		}
-		else
-		{
-			larger = workingPart;
-			smaller = this;
-		}
-										
-		if (working_dist >= larger.radius - (smaller.radius/1.5))
-			return;
-		
-		smaller.remove = true;
-		double mass_add = smaller.mass + larger.mass;
-		larger.vel.replace( ((larger.vel.x * larger.mass) + (smaller.vel.x * smaller.mass))/mass_add,
-								((larger.vel.y * larger.mass) + (smaller.vel.y * smaller.mass))/mass_add);
-		
-		larger.radius = Math.cbrt((smaller.radius*smaller.radius*smaller.radius) + (larger.radius*larger.radius*larger.radius));
-		//larger.radius = Math.sqrt((smaller.radius*smaller.radius) + (larger.radius*larger.radius));
-		larger.RGB.replace( ((larger.RGB.x * larger.mass) + (smaller.RGB.x * smaller.mass))/mass_add,
-							((larger.RGB.y * larger.mass) + (smaller.RGB.y * smaller.mass))/mass_add,
-							((larger.RGB.z * larger.mass) + (smaller.RGB.z * smaller.mass))/mass_add );
-							
-		larger.pos.replace( ((larger.pos.x * larger.mass) + (smaller.pos.x * smaller.mass))/mass_add,
-							((larger.pos.y * larger.mass) + (smaller.pos.y * smaller.mass))/mass_add,
-							((larger.pos.z * larger.mass) + (smaller.pos.z * smaller.mass))/mass_add );
-							
-		larger.mass += smaller.mass;
-	}
-	
-	
-	
-	public boolean wallCollision()
-	{
-		//double max_dim = Math.max(window.x, window.y);
-		if (pos.y > (window.y + (radius*1.1)))
-		{
-			//pos.y = (window.y - radius);
-			//vel.y = -vel.y*elasticity;
-			return true;
-		}
-		
-		if (pos.y < -(radius*1.1))
-		{
-			//pos.y = radius;
-			//vel.y = -vel.y*elasticity;
-			return true;
-		}
-		
-		if (pos.x > (window.x + (radius*1.1)))
-		{
-			//pos.x = (window.x - radius);
-			//vel.x = -vel.x*elasticity;
-			return true;
-		}
-		
-		if (pos.x < -radius*1.1)
-		{
-			//pos.x = radius;
-			//vel.x = -vel.x*elasticity;
-			return true;
-		}
-		return false;
-	}
-
-	
-	
-	public void draw(Graphics2D g2)
-	{	
-		g2.setColor(new Color((int)RGB.x, (int)RGB.y, (int)RGB.z));
-		double late_const = 1.0;
-		double draw_radius = radius;
-		if (draw_radius >= 6 && !bounces)
-		{
-			draw_diameter = (int)Math.round(draw_radius *2.2);
-			draw_pos_x = (int)Math.round(this.pos.x - draw_radius * 1.1);
-			draw_pos_y = (int)Math.round(this.pos.y - draw_radius * 1.1);
-			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
-			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
-		
-		
-			draw_diameter = (int)Math.round(draw_radius *2);
-			draw_pos_x = (int)Math.round(this.pos.x - draw_radius );
-			draw_pos_y = (int)Math.round(this.pos.y - draw_radius );
-			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
-		
-			/*
-			draw_diameter = (int)Math.round(draw_radius *.95*2);
-			draw_pos_x = (int)Math.round(this.pos.x - draw_radius*.95 );
-			draw_pos_y = (int)Math.round(this.pos.y - draw_radius*.95 );
-			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
-			*/
-		
-			draw_diameter = (int)Math.round(draw_radius *.9*2);
-			draw_pos_x = (int)Math.round(this.pos.x - draw_radius*.9 );
-			draw_pos_y = (int)Math.round(this.pos.y - draw_radius*.9 );
-			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
-			
-			late_const = 0.80;
-		}
-		
-		draw_diameter = (int)Math.round(draw_radius *late_const*2);
-		draw_pos_x = (int)Math.round(this.pos.x - draw_radius*late_const );
-		draw_pos_y = (int)Math.round(this.pos.y - draw_radius*late_const );
-		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-		g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
-		
-		
-		
-		
-	}
-	
-	
-	
-	
-	
+	*/
 	
 	/*
 	public void positionCorrection(Vec3 unit_norm)

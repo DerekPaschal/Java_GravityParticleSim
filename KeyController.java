@@ -35,17 +35,20 @@ class KeyController implements KeyListener
 				break;
 				
 			case KeyEvent.VK_1 : //'1'
-				this.model.need_to_clear = true;
-				this.model.state = 1;
+				model.changeState(1);
 				break;
+				
 			case KeyEvent.VK_2 : //'2'
-				this.model.need_to_clear = true;
-				this.model.state = 2;
-				double new_size = 3;
-				//double new_mass = 2 * 3.14 * new_size * new_size * model.density; //Mass dependent on Area of Circle
-				double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * model.density * 0.8);
-				this.model.createPartDisk(120*120,400,false,true, new Vec3(model.window.x/2,model.window.y/2),
-													new_size, 2* new_mass, true, 0.4, new Vec3(250,250,250));
+				model.changeState(2);
+				break;
+				
+			case 61 : //'+'
+				model.changeSpeed(1);
+				break;
+				
+			case 45 : //'-'
+				model.changeSpeed(-1);
+				break;
 				
 		}
 	}
