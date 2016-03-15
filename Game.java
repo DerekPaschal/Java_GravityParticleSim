@@ -74,17 +74,16 @@ public class Game extends JFrame { //implements ActionListener
 			model.update();
 		
 		repaint(); // Indirectly calls View.paintComponent in its own thread (?)
-		
-		//try{
-		//TimeUnit.MILLISECONDS.sleep(1);
-		//} catch (InterruptedException e){}
+		try{
+		TimeUnit.MILLISECONDS.sleep(1);
+		} catch (InterruptedException e){}
 		
 		
 		//End Timer
 		long wait_time =(long)(17000000 - (System.nanoTime() - new_frame_time));
 		
 		//This block is not measured by wait_time
-		this.view.is_lag = (wait_time < -1000);
+		this.view.is_lag = (wait_time < 0);
 		if (wait_time > 1000)
 		{
 			try{

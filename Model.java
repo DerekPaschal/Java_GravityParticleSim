@@ -58,7 +58,7 @@ class Model
 		this.accuracy_multiple = 10;
 		this.timestep = 1.0/accuracy_multiple;
 		this.secs_per_sec = 5;
-		this.density = 2000000;
+		this.density = 4000000;
 	}
 
 	
@@ -105,7 +105,6 @@ class Model
 		//Add the new particles that have been waiting to enter the list
 		addWaitingParts();
 		
-		Thread.yield();
 	}
 	
 	
@@ -244,11 +243,12 @@ class Model
 	{
 		synchronized(m_part_list)
 		{
+			double divide = Math.max(secs_per_sec,1);
 			ListIterator<Particle> partIterator = m_part_list.listIterator();
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				workingPart.pos.y = workingPart.pos.y- (timestep / secs_per_sec);
+				workingPart.pos.y = workingPart.pos.y- (timestep / divide);
 			}
 		}
 	}
@@ -258,11 +258,12 @@ class Model
 	{
 		synchronized(m_part_list)
 		{
+			double divide = Math.max(secs_per_sec,1);
 			ListIterator<Particle> partIterator = m_part_list.listIterator();
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				workingPart.pos.y = workingPart.pos.y+ (timestep / secs_per_sec);
+				workingPart.pos.y = workingPart.pos.y+ (timestep / divide);
 			}
 		}
 	}
@@ -272,11 +273,12 @@ class Model
 	{
 		synchronized(m_part_list)
 		{
+			double divide = Math.max(secs_per_sec,1);
 			ListIterator<Particle> partIterator = m_part_list.listIterator();
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				workingPart.pos.x = workingPart.pos.x- (timestep / secs_per_sec);
+				workingPart.pos.x = workingPart.pos.x- (timestep / divide);
 			}
 		}
 	}
@@ -286,11 +288,12 @@ class Model
 	{
 		synchronized(m_part_list)
 		{
+			double divide = Math.max(secs_per_sec,1);
 			ListIterator<Particle> partIterator = m_part_list.listIterator();
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				workingPart.pos.x = workingPart.pos.x+ (timestep / secs_per_sec);
+				workingPart.pos.x = workingPart.pos.x+ (timestep / divide);
 			}
 		}
 	}
@@ -319,7 +322,7 @@ class Model
 				double new_size = 3;
 				//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 				double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.density * 0.8);
-				this.createPartDisk(200*200,250,false,true, new Vec3(this.window.x/2,this.window.y/2),
+				this.createPartDisk(100*100,300,false,true, new Vec3(this.window.x/2,this.window.y/2),
 													new_size, 2* new_mass, true, 0.2, new Vec3(250,250,250));
 				break;
 		}
@@ -440,6 +443,8 @@ class Model
 			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
 			if (new_size < 3)
 				new_size = 3;
+			if (new_size > 40)
+				new_size = 40;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * density);
 			createNewParticle(new_part_pos, new Vec3(), new_size, 0.2, new_mass, true, RGB);

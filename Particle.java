@@ -101,7 +101,7 @@ class Particle
 						findDistance();
 					
 						//Detect collisions while we are at it
-						if (this.bounces && !workingPart.remove && (workingPart.pos.x > this.pos.x) && workingPart.bounces && (workingPart.mass > 1) && (this.mass > 1))
+						if (this.bounces && !workingPart.remove && workingPart.bounces && (workingPart.mass > 1) && (this.mass > 1))//&& (workingPart.pos.x > this.pos.x))
 						{
 							if (pressureCollision())
 								is_collide = true;
@@ -183,7 +183,7 @@ class Particle
 		//Find minimum restitution for intuitive results
 		//double e = Math.min(this.elasticity, workingPart.elasticity);
 		
-		double repulse = 10000000 * 1000;// * this.radius;
+		double repulse = 4000000000.0;// * this.radius;
 		double press_acc = restitution * repulse * overlap;//Math.log((overlap*10)+1)
 		
 		//System.out.println("press_acc: " + press_acc);
