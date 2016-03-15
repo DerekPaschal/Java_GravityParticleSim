@@ -10,6 +10,7 @@ class View extends JPanel{
 	Particle workingPart;
 	int screen_x, screen_y;
 	boolean is_lag;
+	boolean vel_color;
 	ListIterator<Particle> partIterator;
 
 	View(Model m, int new_screen_x, int new_screen_y) throws IOException //
@@ -18,6 +19,7 @@ class View extends JPanel{
 		screen_x = new_screen_x;
 		screen_y = new_screen_y;
 		is_lag = false;
+		vel_color = false;
 	}
 
 	public void paintComponent(Graphics g) 
@@ -39,7 +41,7 @@ class View extends JPanel{
 				workingPart = this.model.m_part_list.get(i);
 				//workingPart = partIterator.next();
 				if (workingPart != null)
-					workingPart.draw(g2);
+					workingPart.draw(g2,vel_color);
 			}
 		}
 		

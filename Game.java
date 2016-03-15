@@ -83,6 +83,7 @@ public class Game extends JFrame { //implements ActionListener
 		long wait_time =(long)(17000000 - (System.nanoTime() - new_frame_time));
 		
 		//This block is not measured by wait_time
+		this.view.vel_color = this.model.vel_color;
 		this.view.is_lag = (wait_time < 0);
 		if (wait_time > 1000)
 		{
