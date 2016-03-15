@@ -10,7 +10,6 @@ class Model
 
 	LinkedList<Particle> m_part_list;
 	LinkedList<Particle> part_not_added;
-	//ListIterator<Particle> partIterator;
 	Particle workingPart;
 	
 	Vec3 window;
@@ -24,7 +23,7 @@ class Model
 	double total_mass;
 	private double total_mass_temp;
 	
-	boolean need_to_clear;
+	boolean vel_color;
 	boolean cameraUp;
 	boolean cameraDown;
 	boolean cameraLeft;
@@ -49,11 +48,11 @@ class Model
 		new_part_pos = new Vec3();
 		new_drag_xy = new Vec3();
 		this.part_not_added = new LinkedList<Particle>();
-		need_to_clear = false;
 		this.cameraUp = false;
 		this.cameraDown = false;
 		this.cameraLeft = false;
 		this.cameraRight = false;
+		this.vel_color = false;
 		this.state = 1;
 		this.accuracy_multiple = 10;
 		this.timestep = 1.0/accuracy_multiple;
@@ -79,14 +78,6 @@ class Model
 	///------------------------------------------------------------------ 
 	public void update()
 	{	
-		//Check if Particle Field needs to be cleared
-		if (need_to_clear)
-		{
-			Clear();
-			need_to_clear = false;
-		}
-	
-	
 		//Perform Euler Integration on Particles
 		EulerIntegrate();
 		
@@ -124,6 +115,7 @@ class Model
 				workingPart = partIterator.next();
 				
 				workingPart.timestep = this.timestep;
+				workingPart.vel_color = this.vel_color;
 				if (workingPart.updateAcc())
 				{
 					//System.out.println("Remove that part!");
@@ -358,7 +350,7 @@ class Model
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * density); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
 			Vec3 vel = createOrbitingParticle(new_part_pos, new_size, new_mass, true, 0.95, new Vec3(250,250,250));
-			createNewParticle(new_part_pos, vel, new_size, 0.95, new_mass, true, new Vec3(250,250,250));
+			createNewParticle(new_part_pos, vel, new_size, 0.8, new_mass, true, new Vec3(250,250,250));
 		}
 		
 		//State 2: Gets Current Mouse Position, stores in new_part_pos

@@ -30,6 +30,7 @@ class Particle
 	Particle workingPart;
 	double timestep;
 	double working_dist;
+	boolean vel_color;
 	
 	
 	///------------------------------------------------------------------
@@ -57,6 +58,7 @@ class Particle
 		mass = new_mass;
 		bounces = new_bounces;
 		remove = false;
+		vel_color = false;
 	}
 	
 	
@@ -270,7 +272,13 @@ class Particle
 	
 	public void draw(Graphics2D g2)
 	{	
-		g2.setColor(new Color((int)RGB.x, (int)RGB.y, (int)RGB.z));
+		if (!vel_color)
+			g2.setColor(new Color((int)RGB.x, (int)RGB.y, (int)RGB.z));
+		else
+		{
+			double speed = this.vel.length();
+			g2.setColor(new Color((int)Math.min(speed*50, 255), 0, (int)Math.min(speed*40, 255)));
+		}
 		double late_const = 1.0;
 		double draw_radius = radius;
 		if (draw_radius >= 6 && !bounces)

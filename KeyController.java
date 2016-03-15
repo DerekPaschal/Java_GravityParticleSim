@@ -31,7 +31,8 @@ class KeyController implements KeyListener
 				break;
 				
 			case 88 : //'x'
-				this.model.need_to_clear = true;
+				this.model.Clear();
+				this.model.ClearNotAdded();
 				break;
 				
 			case KeyEvent.VK_1 : //'1'
@@ -50,6 +51,9 @@ class KeyController implements KeyListener
 				model.changeSpeed(-1);
 				break;
 				
+			case 86 : //'v'
+				model.vel_color = !model.vel_color;
+				break;
 		}
 	}
 	public void keyReleased(KeyEvent k)
