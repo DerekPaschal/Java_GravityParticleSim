@@ -6,7 +6,7 @@ import java.util.*;
 
 class Particle
 {
-	static final double GravG = 0.000000000066740831;//Gravitational constant
+	//static final double GravG = 0.000000000066740831;//Gravitational constant
 	
 	double elasticity;
 	double radius;
@@ -20,10 +20,6 @@ class Particle
 	static Vec3 window;
 	static LinkedList<Particle> part_list;
 	ListIterator<Particle> partIterator;
-	
-	int draw_diameter;
-	int draw_pos_x;
-	int draw_pos_y;
 
 	boolean remove;
 	boolean bounces;
@@ -69,14 +65,14 @@ class Particle
 	{
 		if (working_dist < (this.radius + workingPart.radius) * 0.1)
 			return;
-		double VectorG = ((GravG * workingPart.mass) / (working_dist*working_dist*working_dist));
+		double VectorG = ((workingPart.mass) / (working_dist*working_dist*working_dist));//GravG *
 		
 		this.acc.addi(VectorG * (workingPart.pos.x - this.pos.x), VectorG * (workingPart.pos.y - this.pos.y));
 	}
 	
 	
 	
-	public boolean updateAcc()
+	public synchronized boolean updateAcc()
 	{
 		//Wall collision detection
 		if (this.wallCollision())
@@ -101,19 +97,19 @@ class Particle
 						findDistance();
 					
 						//Detect collisions while we are at it
-						if (this.bounces && !workingPart.remove && workingPart.bounces && (workingPart.mass > 1) && (this.mass > 1))//&& (workingPart.pos.x > this.pos.x))
+						if (this.bounces && !workingPart.remove && workingPart.bounces && (workingPart.mass > 0) && (this.mass > 0) && (workingPart.pos.x > this.pos.x))
 						{
 							if (pressureCollision())
 								is_collide = true;
 						}
-						if (!this.bounces || is_collide)
+						if ((!this.bounces || is_collide) && (workingPart.mass > 0) && (this.mass > 0))
 						{
 							absorbCollision();
 							is_collide = false;
 						}
 						
 						//Apply gravity
-						if (workingPart.mass >= 1)
+						if (workingPart.mass > 0)
 							Gravity();
 						
 					}
@@ -122,12 +118,14 @@ class Particle
 		}
 		return remove;
 	}
-	public void updateVel()
+	
+	public synchronized void updateVel()
 	{
 		this.vel.x = this.vel.x + (this.acc.x * timestep);
 		this.vel.y = this.vel.y + (this.acc.y * timestep);
 	}
-	public void updatePos()
+	
+	public synchronized void updatePos()
 	{
 		this.pos.x = this.pos.x + (this.vel.x * timestep);
 		this.pos.y = this.pos.y + (this.vel.y * timestep);
@@ -163,30 +161,21 @@ class Particle
 		double restitution = 1.0;
 		//Calculate Relative velocity
 		Vec3 rv = new Vec3(workingPart.vel.x - this.vel.x, workingPart.vel.y - this.vel.y);
-		//Calculate Velocity in normal direction and return if negative for intuitive results
+		//Calculate Velocity in normal direction and apply restitution if negative
 		double velAlongNorm = rv.DotProduct(unit_norm);
 		if(velAlongNorm > 0)
 			restitution = elasticity;
 		
-		//if (rv.length() > 0.001 && velAlongNorm > 0)
-		//	vel_portion = 1- (velAlongNorm / rv.length());
-		//System.out.println("vel_port: " + vel_portion);
-		
 		//Find overlap of particles
 		double overlap = r - working_dist;
-		//if (overlap > this.radius/2 && rv.length() < 1)
-		//{
-			//System.out.println("This is true");
-		//	return;
-		//}
-		//overlap = Math.min(overlap,radius * 0.1);
+		
 		//Find minimum restitution for intuitive results
 		//double e = Math.min(this.elasticity, workingPart.elasticity);
 		
-		double repulse = 16000000000.0;// * this.radius;
+		double repulse = 2.0;// * this.radius;
 		double press_acc = restitution * repulse * overlap;//Math.log((overlap*10)+1)
 		
-		//force vector
+		//Eventual additional Velocity Vector
 		Vec3 press_vel = unit_norm.mult(press_acc * timestep);
 
 		workingPart.vel.addi_vec(press_vel.div(workingPart.mass));//workingPart.mass
@@ -198,10 +187,7 @@ class Particle
 	
 	
 	public void absorbCollision()
-	{
-		if ((workingPart.mass < 1) && (this.mass < 1))
-			return;
-		
+	{	
 		Particle larger;
 		Particle smaller;
 		if (this.mass >= workingPart.mass)
@@ -264,14 +250,19 @@ class Particle
 
 	
 	
-	public void draw(Graphics2D g2, boolean vel_color)
+	public synchronized void draw(Graphics2D g2, boolean vel_color)
 	{	
+		int draw_diameter;
+		int draw_pos_x;
+		int draw_pos_y;
+	
+	
 		if (!vel_color)
 			g2.setColor(new Color((int)RGB.x, (int)RGB.y, (int)RGB.z));
 		else
 		{
 			double speed = this.vel.length();
-			g2.setColor(new Color((int)Math.min(speed*64, 255), (int)64, (int)Math.max(255 - speed*64, 0)));
+			g2.setColor(new Color((int)Math.min(speed*60, 255), (int)64, (int)Math.max(255 - speed*60, 0)));
 		}
 		double late_const = 1.0;
 		double draw_radius = radius;

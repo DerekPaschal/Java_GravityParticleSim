@@ -43,7 +43,7 @@ public class Game extends JFrame { //implements ActionListener
 		this.fps_round = 0.0;
 		
 		//new Timer(17, this).start(); // Indirectly calls actionPerformed at regular intervals
-		DoSim();
+		SimControl();
 	}
 	
 	public void DoSim()
@@ -54,42 +54,45 @@ public class Game extends JFrame { //implements ActionListener
 
 	public void SimControl()
 	{
-		//Begin timer
-		long new_frame_time = System.nanoTime();
-		
-		//double accuracy_multiple = 10;
-		
-		int accuracy_multiple = model.accuracy_multiple;
-		int secs_per_sec = model.secs_per_sec;
-		if (accuracy_multiple < 1)
+		while (true)
 		{
-			System.out.println("Accuracy must be set to 1 or higher!");
-			System.exit(0);
-		}
-		
-		double timestep = 1.0/accuracy_multiple;
-		this.model.timestep = timestep;
-		//this.model.secs_per_sec = secs_per_sec;
-		for (int i = 0; i < accuracy_multiple * secs_per_sec; i++)
-			model.update();
-		
-		repaint(); // Indirectly calls View.paintComponent in its own thread (?)
-		try{
-		TimeUnit.MILLISECONDS.sleep(1);
-		} catch (InterruptedException e){}
-		
-		
-		//End Timer
-		long wait_time =(long)(17000000 - (System.nanoTime() - new_frame_time));
-		
-		//This block is not measured by wait_time
-		this.view.vel_color = this.model.vel_color;
-		this.view.is_lag = (wait_time < 0);
-		if (wait_time > 1000)
-		{
-			try{
-			TimeUnit.NANOSECONDS.sleep(wait_time);
-			} catch (InterruptedException e){}
+			//Begin timer
+			long new_frame_time = System.nanoTime();
+			
+			//double accuracy_multiple = 10;
+			
+			int accuracy_multiple = model.accuracy_multiple;
+			int secs_per_sec = model.secs_per_sec;
+			if (accuracy_multiple < 1)
+			{
+				System.out.println("Accuracy must be set to 1 or higher!");
+				System.exit(0);
+			}
+			
+			double timestep = 1.0/accuracy_multiple;
+			this.model.timestep = timestep;
+			//this.model.secs_per_sec = secs_per_sec;
+			for (int i = 0; i < accuracy_multiple * secs_per_sec; i++)
+				model.update();
+			
+			repaint(); // Indirectly calls View.paintComponent in its own thread (?)
+			//try{
+			//TimeUnit.MILLISECONDS.sleep(1);
+			//} catch (InterruptedException e){}
+			
+			
+			//End Timer
+			long wait_time =(long)(17000000 - (System.nanoTime() - new_frame_time));
+			
+			//This block is not measured by wait_time
+			this.view.vel_color = this.model.vel_color;
+			this.view.is_lag = (wait_time < 0);
+			if (wait_time > 1000)
+			{
+				try{
+				TimeUnit.NANOSECONDS.sleep(wait_time);
+				} catch (InterruptedException e){}
+			}
 		}
 	}
 

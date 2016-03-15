@@ -6,11 +6,11 @@ import java.io.IOException;
 
 class Model
 {	
-	static final double GravG = 0.000000000066740831;//Gravitational constant
+	//static final double GravG = 0.000000000066740831;//Gravitational constant
 
 	LinkedList<Particle> m_part_list;
 	LinkedList<Particle> part_not_added;
-	Particle workingPart;
+	//Particle workingPart;
 	
 	Vec3 window;
 	double timestep;
@@ -54,10 +54,11 @@ class Model
 		this.cameraRight = false;
 		this.vel_color = false;
 		this.state = 1;
-		this.accuracy_multiple = 10;
-		this.timestep = 1.0/accuracy_multiple;
-		this.secs_per_sec = 5;
-		this.density = 4000000;
+		this.accuracy_multiple = 1;
+		//this.timestep = 1.0/accuracy_multiple;
+		this.secs_per_sec = 0;
+		this.density = 0.00027; //In native units (Kg * G)
+		this.changeState(1);
 	}
 
 	
@@ -95,13 +96,13 @@ class Model
 		
 		//Add the new particles that have been waiting to enter the list
 		addWaitingParts();
-		
 	}
 	
 	
 	
 	public void EulerIntegrate()
 	{
+		Particle workingPart;
 		//Reset running totals for center of mass and total mass
 		total_mass_temp = 0.0;
 		mass_center_temp.replace(0.0,0.0,0.0);
@@ -171,6 +172,7 @@ class Model
 	///------------------------------------------------------------------ 
 	public void addWaitingParts()
 	{
+		Particle workingPart;
 		synchronized(m_part_list)
 		{
 			synchronized(part_not_added)
@@ -180,8 +182,10 @@ class Model
 				{
 					//Allow new particle if it does not intersect with 
 					//Particles already in the list
-					if (allow_new_part(part_not_added.get(i)))
-						m_part_list.add(part_not_added.get(i));
+					workingPart = part_not_added.get(i);
+	
+					if (allow_new_part(workingPart))
+						m_part_list.add(workingPart);
 					
 				}
 				ClearNotAdded();
@@ -197,13 +201,18 @@ class Model
 	///------------------------------------------------------------------ 
 	public void Clear()
 	{
+		Particle workingPart;
 		synchronized(m_part_list)
 		{
 			ListIterator<Particle> partIterator = m_part_list.listIterator();
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				partIterator.remove();
+				synchronized(workingPart)
+				{
+					if (workingPart != null)
+						partIterator.remove();
+				}
 			}
 		}
 	}
@@ -212,13 +221,18 @@ class Model
 	
 	public void ClearNotAdded()
 	{
+		Particle workingPart;
 		synchronized(part_not_added)
 		{
 			ListIterator<Particle> partIterator = part_not_added.listIterator();
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				partIterator.remove();
+				synchronized (workingPart)
+				{
+					if (workingPart != null)
+						partIterator.remove();
+				}
 			}
 		}
 	}
@@ -232,6 +246,7 @@ class Model
 	///------------------------------------------------------------------ 
 	public void movePartsUp()
 	{
+		Particle workingPart;
 		synchronized(m_part_list)
 		{
 			double divide = Math.max(secs_per_sec,1);
@@ -239,7 +254,11 @@ class Model
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				workingPart.pos.y = workingPart.pos.y- (timestep / divide);
+				synchronized(workingPart)
+				{
+					if (workingPart != null)
+						workingPart.pos.y = workingPart.pos.y- (timestep / divide);
+				}
 			}
 		}
 	}
@@ -247,6 +266,7 @@ class Model
 	
 	public void movePartsDown()
 	{
+		Particle workingPart;
 		synchronized(m_part_list)
 		{
 			double divide = Math.max(secs_per_sec,1);
@@ -254,7 +274,11 @@ class Model
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				workingPart.pos.y = workingPart.pos.y+ (timestep / divide);
+				synchronized(workingPart)
+				{
+					if (workingPart != null)
+						workingPart.pos.y = workingPart.pos.y+ (timestep / divide);
+				}
 			}
 		}
 	}
@@ -262,6 +286,7 @@ class Model
 	
 	public void movePartsLeft()
 	{
+		Particle workingPart;
 		synchronized(m_part_list)
 		{
 			double divide = Math.max(secs_per_sec,1);
@@ -269,7 +294,11 @@ class Model
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				workingPart.pos.x = workingPart.pos.x- (timestep / divide);
+				synchronized(workingPart)
+				{
+					if (workingPart != null)
+						workingPart.pos.x = workingPart.pos.x- (timestep / divide);
+				}
 			}
 		}
 	}
@@ -277,6 +306,7 @@ class Model
 	
 	public void movePartsRight()
 	{
+		Particle workingPart;
 		synchronized(m_part_list)
 		{
 			double divide = Math.max(secs_per_sec,1);
@@ -284,7 +314,11 @@ class Model
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				workingPart.pos.x = workingPart.pos.x+ (timestep / divide);
+				synchronized(workingPart)
+				{
+					if (workingPart != null)
+						workingPart.pos.x = workingPart.pos.x+ (timestep / divide);
+				}
 			}
 		}
 	}
@@ -299,8 +333,8 @@ class Model
 			case 1:
 				this.Clear();
 				this.ClearNotAdded();
-				this.accuracy_multiple = 10;
-				this.secs_per_sec = 1;
+				this.accuracy_multiple = 24;
+				this.secs_per_sec = 2;
 				this.state = 1;
 				break;
 				
@@ -308,12 +342,12 @@ class Model
 				this.ClearNotAdded();
 				this.Clear();
 				this.state = 2;
-				this.accuracy_multiple = 10;
+				this.accuracy_multiple = 24;
 				this.secs_per_sec = 1;
 				double new_size = 3;
 				//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 				double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.density * 0.8);
-				this.createPartDisk(200*200,0*0,200,false,true, new Vec3(this.window.x/2,this.window.y/2),
+				this.createPartDisk(200*200,0*0,150,false,true, new Vec3(this.window.x/2,this.window.y/2),
 													new_size, 2* new_mass, true, 0.0, new Vec3(250,250,250));
 				break;
 		}
@@ -477,7 +511,7 @@ class Model
 		double cm_distance = Math.sqrt(Math.pow(mass_center.x - new_pos.x,2) + Math.pow(mass_center.y - new_pos.y,2));
 		double OrbitV = 0.0;
 		if (cm_distance >= 1)
-			OrbitV = Math.sqrt((GravG * total_mass) / cm_distance);
+			OrbitV = Math.sqrt((total_mass) / cm_distance);//GravG * 
 		
 		//Find unit tangent direction between particles
 		Vec3 tan = new Vec3(new_pos.y - mass_center.y, mass_center.x - new_pos.x);
@@ -502,7 +536,6 @@ class Model
 	public void createPartDisk(double outer_sqrd_radius,double inner_sqrd_radius, int parts, boolean orbiting, boolean balanced, Vec3 center, 
 										double new_size, double new_mass, boolean bounce,double elasticity, Vec3 RGB)
 	{
-		
 		double r;
 		double theta;
 		double x;
@@ -528,13 +561,14 @@ class Model
 	
 	public boolean allow_new_part(Particle testingPart)
 	{
+		Particle workingPart;
 		double distance_sqrd, r2;
 		synchronized(m_part_list)
 		{
 			ListIterator<Particle> partIterator = this.m_part_list.listIterator();
 			while (partIterator.hasNext())
 			{
-				this.workingPart = partIterator.next();
+				workingPart = partIterator.next();
 				if (workingPart.bounces)
 				{
 					distance_sqrd = Math.abs((workingPart.pos.x - testingPart.pos.x)*(workingPart.pos.x - testingPart.pos.x) +
