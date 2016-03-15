@@ -113,9 +113,8 @@ class Model
 			while (partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
-				
 				workingPart.timestep = this.timestep;
-				workingPart.vel_color = this.vel_color;
+				
 				if (workingPart.updateAcc())
 				{
 					//System.out.println("Remove that part!");
@@ -314,8 +313,8 @@ class Model
 				double new_size = 3;
 				//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 				double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.density * 0.8);
-				this.createPartDisk(100*100,300,false,true, new Vec3(this.window.x/2,this.window.y/2),
-													new_size, 2* new_mass, true, 0.2, new Vec3(250,250,250));
+				this.createPartDisk(200*200,0*0,200,false,true, new Vec3(this.window.x/2,this.window.y/2),
+													new_size, 2* new_mass, true, 0.0, new Vec3(250,250,250));
 				break;
 		}
 	}
@@ -345,7 +344,7 @@ class Model
 		if (state == 1)
 		{
 			new_part_pos.replace(new_x, new_y);
-			int new_size = 2;
+			int new_size = 3;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * density); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
@@ -380,7 +379,7 @@ class Model
 			double new_size = 6;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.density);
-			createNewParticle(new_part_pos, vel, new_size, 0.2, new_mass, true, RGB);
+			createNewParticle(new_part_pos, vel, new_size, 0.0, new_mass, true, RGB);
 			//this.part_not_added.add(new Particle(m_part_list, window, new_part_pos, vel, new_size, 0.4, new_mass, true, RGB));
 		}
 	}
@@ -435,11 +434,11 @@ class Model
 			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
 			if (new_size < 3)
 				new_size = 3;
-			if (new_size > 40)
-				new_size = 40;
+			if (new_size > 100)
+				new_size = 100;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * density);
-			createNewParticle(new_part_pos, new Vec3(), new_size, 0.2, new_mass, true, RGB);
+			createNewParticle(new_part_pos, new Vec3(), new_size, 0.0, new_mass, true, RGB);
 		}
 	}
 	
@@ -500,7 +499,7 @@ class Model
 	/// Radius, Mass, Bounce, Elasticity, and Color of the particles
 	/// are also Arguments.
 	///------------------------------------------------------------------ 
-	public void createPartDisk(double sqrd_radius, int parts, boolean orbiting, boolean balanced, Vec3 center, 
+	public void createPartDisk(double outer_sqrd_radius,double inner_sqrd_radius, int parts, boolean orbiting, boolean balanced, Vec3 center, 
 										double new_size, double new_mass, boolean bounce,double elasticity, Vec3 RGB)
 	{
 		
@@ -514,7 +513,7 @@ class Model
 			{
 				for (int i=0; i < parts; i++)
 				{
-					r = Math.random() * sqrd_radius;
+					r = (Math.random() * (outer_sqrd_radius - inner_sqrd_radius)) + inner_sqrd_radius;
 					theta = Math.random() * 6.28;
 					x = (Math.sqrt(r) * Math.cos(theta)) + center.x;
 					y = (Math.sqrt(r) * Math.sin(theta)) + center.y;

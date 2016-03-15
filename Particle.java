@@ -30,7 +30,6 @@ class Particle
 	Particle workingPart;
 	double timestep;
 	double working_dist;
-	boolean vel_color;
 	
 	
 	///------------------------------------------------------------------
@@ -58,7 +57,6 @@ class Particle
 		mass = new_mass;
 		bounces = new_bounces;
 		remove = false;
-		vel_color = false;
 	}
 	
 	
@@ -185,18 +183,14 @@ class Particle
 		//Find minimum restitution for intuitive results
 		//double e = Math.min(this.elasticity, workingPart.elasticity);
 		
-		double repulse = 4000000000.0;// * this.radius;
+		double repulse = 16000000000.0;// * this.radius;
 		double press_acc = restitution * repulse * overlap;//Math.log((overlap*10)+1)
-		
-		//System.out.println("press_acc: " + press_acc);
 		
 		//force vector
 		Vec3 press_vel = unit_norm.mult(press_acc * timestep);
-		//System.out.println("press.x: " + press_vec.x);
-		//System.out.println("vel1: " + this.vel.x);
+
 		workingPart.vel.addi_vec(press_vel.div(workingPart.mass));//workingPart.mass
 		this.vel.addi_vec(press_vel.div(-this.mass)); //this.mass
-		//System.out.println("vel2: " + this.vel.x);
 		
 		return true;
 	}
@@ -270,14 +264,14 @@ class Particle
 
 	
 	
-	public void draw(Graphics2D g2)
+	public void draw(Graphics2D g2, boolean vel_color)
 	{	
 		if (!vel_color)
 			g2.setColor(new Color((int)RGB.x, (int)RGB.y, (int)RGB.z));
 		else
 		{
 			double speed = this.vel.length();
-			g2.setColor(new Color((int)Math.min(speed*50, 255), 0, (int)Math.min(speed*40, 255)));
+			g2.setColor(new Color((int)Math.min(speed*64, 255), (int)64, (int)Math.max(255 - speed*64, 0)));
 		}
 		double late_const = 1.0;
 		double draw_radius = radius;
