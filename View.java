@@ -31,8 +31,8 @@ class View extends JPanel{
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
-		synchronized(model.m_part_list)
-		{
+		//synchronized(model.m_part_list)
+		//{
 			//partIterator = model.m_part_list.listIterator();
 			//while (partIterator.hasNext())
 			for (int i = 0; i < this.model.m_part_list.size(); i++)
@@ -43,7 +43,7 @@ class View extends JPanel{
 				if (workingPart != null)
 					workingPart.draw(g2,vel_color);
 			}
-		}
+		//}
 		
 		
 		
@@ -53,8 +53,8 @@ class View extends JPanel{
 		String output = "Speed: " + this.model.secs_per_sec;
 		g.drawString(output, 2, 27);
 		
-		//output = "Accuracy: " + this.model.accuracy_multiple;
-		//g.drawString(output, 2, 42);
+		output = "Accuracy: " + this.model.accuracy_multiple;
+		g.drawString(output, 2, 42);
 			
 		if (is_lag)
 			g.setColor(new Color(255, 132, 132));
