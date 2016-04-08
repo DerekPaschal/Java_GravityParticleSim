@@ -4,25 +4,25 @@ import java.io.IOException;
 
 class MouseController implements MouseListener
 {
-	Model model;
+	Game game;
 
-	MouseController(Model m) {
-		this.model = m;
+	MouseController(Game game) {
+		this.game = game;
 	}
 
 	public void mousePressed(MouseEvent e) {
 		if (e.getButton() == MouseEvent.BUTTON1)
-			this.model.OnClick(e.getX(), e.getY());
+			this.game.OnClick(e.getX(), e.getY());
 		if (e.getButton() == MouseEvent.BUTTON3)
-			this.model.RightClick(e.getX(), e.getY());
+			this.game.RightClick(e.getX(), e.getY());
 	}
 	
 	public void mouseReleased(MouseEvent e) 
 	{    
 		if (e.getButton() == MouseEvent.BUTTON1)
-			this.model.ClickRelease(e.getX(), e.getY());
+			this.game.ClickRelease(e.getX(), e.getY());
 		if (e.getButton() == MouseEvent.BUTTON3)
-			this.model.RightRelease(e.getX(), e.getY());
+			this.game.RightRelease(e.getX(), e.getY());
 	}
 	public void mouseEntered(MouseEvent e) {    }
 	public void mouseExited(MouseEvent e) {    }

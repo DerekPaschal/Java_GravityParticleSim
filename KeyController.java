@@ -3,10 +3,10 @@ import java.io.IOException;
 
 class KeyController implements KeyListener
 {
-	Model model;
+	Game game;
 
-	KeyController(Model m) {
-		this.model = m;
+	KeyController(Game game) {
+		this.game = game;
 	}
 	
 	public void keyPressed(KeyEvent k)
@@ -15,45 +15,51 @@ class KeyController implements KeyListener
 		switch( keyCode ) 
 		{ 
 			case KeyEvent.VK_UP:
-				model.cameraUp = true; 
+				this.game.cameraUp = true; 
 				break;
 				
 			case KeyEvent.VK_DOWN:
-				model.cameraDown = true; 
+				this.game.cameraDown = true; 
 				break;
 				
 			case KeyEvent.VK_LEFT:
-				model.cameraLeft = true;
+				this.game.cameraLeft = true;
 				break;
 				
 			case KeyEvent.VK_RIGHT :
-				model.cameraRight = true;
+				this.game.cameraRight = true;
 				break;
 				
 			case 88 : //'x'
-				this.model.Clear();
-				this.model.ClearNotAdded();
+				this.game.Clear();
+				//this.game.ClearNotAdded();
 				break;
 				
 			case KeyEvent.VK_1 : //'1'
-				model.changeState(1);
+				this.game.changeState(1);
 				break;
 				
 			case KeyEvent.VK_2 : //'2'
-				model.changeState(2);
+				this.game.changeState(2);
+				break;
+				
+			case KeyEvent.VK_3 : //'3'
+				this.game.changeState(3);
 				break;
 				
 			case 61 : //'+'
-				model.changeSpeed(1);
+				this.game.changeSpeed(1);
 				break;
 				
 			case 45 : //'-'
-				model.changeSpeed(-1);
+				this.game.changeSpeed(-1);
 				break;
 				
 			case 86 : //'v'
-				model.vel_color = !model.vel_color;
+				this.game.coloring = (game.coloring+1)%2;
 				break;
+				
+				
 		}
 	}
 	public void keyReleased(KeyEvent k)
@@ -62,19 +68,19 @@ class KeyController implements KeyListener
 		switch( keyCode ) 
 		{ 
 			case KeyEvent.VK_UP:
-				model.cameraUp = false;
+				this.game.cameraUp = false;
 				break;
 				
 			case KeyEvent.VK_DOWN:
-				model.cameraDown = false;
+				this.game.cameraDown = false;
 				break;
 				
 			case KeyEvent.VK_LEFT:
-				model.cameraLeft = false;
+				this.game.cameraLeft = false;
 				break;
 				
 			case KeyEvent.VK_RIGHT :
-				model.cameraRight = false;
+				this.game.cameraRight = false;
 				break;
 		}
 	}
