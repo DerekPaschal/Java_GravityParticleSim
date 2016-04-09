@@ -59,7 +59,9 @@ class KeyController implements KeyListener
 				this.game.coloring = (game.coloring+1)%2;
 				break;
 				
-				
+			case 71 : //'g'
+				this.game.field.grav_on = !this.game.field.grav_on;
+				break;
 		}
 	}
 	public void keyReleased(KeyEvent k)

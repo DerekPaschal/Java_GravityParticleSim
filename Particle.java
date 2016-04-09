@@ -42,7 +42,7 @@ class Particle
 	
 	
 	
-	public synchronized void draw(Graphics2D g2, int coloring)
+	public void draw(Graphics2D g2, int coloring)
 	{	
 		int draw_diameter;
 		int draw_pos_x;
@@ -55,41 +55,41 @@ class Particle
 			g2.setColor(new Color((int)Math.min(speed*132, 255), (int)64, (int)Math.max(255 - speed*132, 0)));
 		}
 		
-		
 		//Default coloring
 		else
 			g2.setColor(new Color((int)RGB.x, (int)RGB.y, (int)RGB.z));
+		
 		
 		double late_const = 1.0;
 		double draw_radius = radius;
 		if (draw_radius >= 6 && !bounces)
 		{
-			draw_diameter = (int)Math.round(draw_radius *2.2);
-			draw_pos_x = (int)Math.round(this.pos.x - draw_radius * 1.1);
-			draw_pos_y = (int)Math.round(this.pos.y - draw_radius * 1.1);
+			draw_diameter = (int)(draw_radius *2.2);
+			draw_pos_x = (int)(this.pos.x - draw_radius * 1.1);
+			draw_pos_y = (int)(this.pos.y - draw_radius * 1.1);
 			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
 			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
 		
 		
-			draw_diameter = (int)Math.round(draw_radius *2);
-			draw_pos_x = (int)Math.round(this.pos.x - draw_radius );
-			draw_pos_y = (int)Math.round(this.pos.y - draw_radius );
+			draw_diameter = (int)(draw_radius *2);
+			draw_pos_x = (int)(this.pos.x - draw_radius );
+			draw_pos_y = (int)(this.pos.y - draw_radius );
 			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
 
 		
-			draw_diameter = (int)Math.round(draw_radius *.9*2);
-			draw_pos_x = (int)Math.round(this.pos.x - draw_radius*.9 );
-			draw_pos_y = (int)Math.round(this.pos.y - draw_radius*.9 );
+			draw_diameter = (int)(draw_radius *.9*2);
+			draw_pos_x = (int)(this.pos.x - draw_radius*.9 );
+			draw_pos_y = (int)(this.pos.y - draw_radius*.9 );
 			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
 			g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
 			
 			late_const = 0.80;
 		}
 		
-		draw_diameter = (int)Math.round(draw_radius *late_const*2);
-		draw_pos_x = (int)Math.round(this.pos.x - draw_radius*late_const );
-		draw_pos_y = (int)Math.round(this.pos.y - draw_radius*late_const );
+		draw_diameter = (int)(draw_radius *late_const*2);
+		draw_pos_x = (int)(this.pos.x - draw_radius*late_const );
+		draw_pos_y = (int)(this.pos.y - draw_radius*late_const );
 		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 		g2.fillOval(draw_pos_x, draw_pos_y, draw_diameter, draw_diameter);
 		

@@ -7,7 +7,7 @@ class Game
 	Vec3 window;
 	double timestep;
 	int secs_per_sec;
-	double accuracy_multiple;
+	int accuracy_multiple;
 	Vec3 new_part_pos;
 	Vec3 new_drag_xy;
 	
@@ -17,7 +17,7 @@ class Game
 	boolean cameraDown;
 	boolean cameraLeft;
 	boolean cameraRight;
-	double density;
+	double default_density;
 	
 	///State '1' is making central "suns" and clicking creates light orbiting bodys
 	///State '2' creates a collapsing disk of light particles, which you shoot with heavier bodies
@@ -40,7 +40,7 @@ class Game
 		this.state = 1;
 		this.accuracy_multiple = 1;
 		this.secs_per_sec = 0;
-		this.density = 4000000.0; //In units Kg
+		this.default_density = 4000000.0; //In units Kg
 		this.changeState(1);
 	}
 
@@ -197,11 +197,12 @@ class Game
 				this.secs_per_sec = 1;
 				double new_size_min = 3;
 				double new_size_max = 5;
+				double new_density = this.default_density;
 				//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
-				double new_mass_min = ((4.0/3.0)*3.14*Math.pow(new_size_min,3) * this.density);
-				double new_mass_max = ((4.0/3.0)*3.14*Math.pow(new_size_max,3) * this.density);
-				createPartDisk(null,200*200,0*0,400,false,true, new Vec3(this.window.x/2,this.window.y/2,0.0),
-									new_size_min, new_size_max, new_mass_min, new_mass_min, true, 0.0, new Vec3(250,250,250));
+				//double new_mass_min = ((4.0/3.0)*3.14*Math.pow(new_size_min,3) * this.density);
+				//double new_mass_max = ((4.0/3.0)*3.14*Math.pow(new_size_max,3) * this.density);
+				createPartDisk(null,400*400,0*0,400,false,true, new Vec3(this.window.x/2,this.window.y/2,0.0),
+									new_size_min, new_size_max, new_density, true, 0.0, new Vec3(250,250,250));
 				break;
 				
 			case 3:
@@ -210,7 +211,7 @@ class Game
 				this.accuracy_multiple = 5;
 				this.secs_per_sec = 1;
 				double new_size = 20;
-				double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * density);
+				double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density);
 				Particle newPart = new Particle(new Vec3(150.0,200.0,200.0), new Vec3(), new_size, 0.8, new_mass, true, new Vec3(250,250,250));
 				addNewParticle(newPart);
 				newPart = new Particle(new Vec3(200.0,200.0,-200.0), new Vec3(), new_size, 0.8, new_mass, true, new Vec3(200,200,200));
@@ -251,7 +252,7 @@ class Game
 			new_part_pos = new Vec3(new_x, new_y,0.0);
 			int new_size = 3;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
-			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * density); //Mass dependent on Volume of Sphere
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
 			Vec3 vel = createOrbitingTraj(null,new_part_pos, new_size, new_mass, true, 0.95, new Vec3(250,250,250));
 			Particle newPart = new Particle(new_part_pos, vel, new_size, 0.8, new_mass, true, new Vec3(250,250,250));
@@ -301,7 +302,7 @@ class Game
 			
 			double new_size = 6;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
-			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.density);
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.default_density*2);
 			Particle newPart = new Particle(new_part_pos, vel, new_size, 0.0, new_mass, true, RGB);
 			addNewParticle(newPart);
 			//createPartDisk();
@@ -346,7 +347,7 @@ class Game
 			if (new_size < 5)
 				new_size = 5;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
-			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.density);
+			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.default_density);
 			Particle newPart = new Particle(new_part_pos, new Vec3(), new_size, 1.0, new_mass, false, RGB);
 			addNewParticle(newPart);
 		}
@@ -362,7 +363,7 @@ class Game
 			if (new_size > 100)
 				new_size = 100;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
-			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * density);
+			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.default_density);
 			Particle newPart = new Particle(new_part_pos, new Vec3(), new_size, 0.0, new_mass, true, RGB);
 			addNewParticle(newPart);
 		}
@@ -436,7 +437,7 @@ class Game
 	/// are also Arguments.
 	///------------------------------------------------------------------ 
 	public void createPartDisk(Particle centerParticle,double outer_sqrd_radius,double inner_sqrd_radius, int parts, boolean orbiting, boolean balanced, Vec3 center, 
-								double new_size_min, double new_size_max, double new_mass_min, double new_mass_max, boolean bounce, double elasticity, Vec3 RGB)
+								double new_size_min, double new_size_max, double density, boolean bounce, double elasticity, Vec3 RGB)
 	{
 		double r;
 		double theta;
@@ -456,8 +457,9 @@ class Game
 			
 		for (int i=0; i < parts; i++)
 		{
-			mass = (Math.random() * (new_mass_max - new_mass_min)) + new_mass_min;
+			//mass = (Math.random() * (new_mass_max - new_mass_min)) + new_mass_min;
 			size = (Math.random() * (new_size_max - new_size_min)) + new_size_min;
+			mass = ((4.0/3.0)*3.14*Math.pow(size,3) * density);
 			if (balanced)
 			{
 				r = (Math.random() * (outer_sqrd_radius - inner_sqrd_radius)) + inner_sqrd_radius;

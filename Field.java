@@ -5,7 +5,7 @@ class Field
 {	
 	static final double GravG = 0.000000000066740831;//Gravitational constant
 	
-	LinkedList<Particle> part_list;
+	ArrayList<Particle> part_list;
 	Vec3 window;
 	
 	Vec3 mass_center;
@@ -13,10 +13,12 @@ class Field
 	double total_mass;
 	private double total_mass_temp;
 	
+	boolean grav_on;
+	
 	Field(Vec3 new_window)
 	{
 		//Initializations
-		this.part_list = new LinkedList<Particle>();
+		this.part_list = new ArrayList<Particle>();
 		this.mass_center = new Vec3();
 		this.total_mass = 0.0;
 		this.window = new_window;
@@ -24,40 +26,81 @@ class Field
 		//Defaults
 		this.mass_center_temp = new Vec3();
 		this.total_mass_temp = 0.0;
+		this.grav_on = true;
 	}
 	
 	
 	
 	public void EulerIntegrate(double timestep)
 	{
-		Particle workingPart;
 		//Reset running totals for center of mass and total mass
 		total_mass_temp = 0.0;
 		mass_center_temp = new Vec3();
+		Particle workingPart;
 		
 		synchronized(this.part_list)
 		{
+			ListIterator<Particle> partIterator;
+			double ThreadCount = 4;
 			
-			//Run collision code
-			ListIterator<Particle> partIterator = part_list.listIterator();
-			while (partIterator.hasNext())
+			
+			//Run particle-wall collision
+			for(int i = 0; i < this.part_list.size(); i++)
 			{
-				workingPart = partIterator.next();
-				runCollisions(workingPart,timestep);
+				workingPart = this.part_list.get(i);
+				workingPart.remove = wallCollision(workingPart);
+			}
+			
+			
+			//Run particle-particle collision
+			double divided = this.part_list.size()/ThreadCount;
+			Thread t1 = new Thread(new CollisionThread(this, 0.0, divided, timestep));
+			Thread t2 = new Thread(new CollisionThread(this, divided, divided*2, timestep));
+			Thread t3 = new Thread(new CollisionThread(this, divided*2, divided*3, timestep));
+			Thread t4 = new Thread(new CollisionThread(this, divided*3, divided*4, timestep));
+			t1.start();
+			t2.start();
+			t3.start();
+			t4.start();
+			try
+			{ 
+				t1.join();
+				t2.join();
+				t3.join();
+				t4.join(); 
+			} catch (InterruptedException e){}
+			
+			
+			
+			//Remove particles no longer in the field
+			for(int i = 0; i < this.part_list.size(); i++)
+			{
+				workingPart = this.part_list.get(i);
 				if (workingPart.remove)
 				{
-					partIterator.remove();
+					this.part_list.remove(i);
 				}
 			}
 			
 			
-			// Update Particle accelerations and collisions
-			partIterator = part_list.listIterator();
-			while (partIterator.hasNext())
-			{
-				workingPart = partIterator.next();
-				updateAcc(workingPart, timestep);
-			}
+			
+			divided = this.part_list.size()/ThreadCount;
+			// Update Gravity acceleration
+			t1 = new Thread(new GravityThread(this, 0.0, divided, timestep));
+			t2 = new Thread(new GravityThread(this, divided, divided*2, timestep));
+			t3 = new Thread(new GravityThread(this, divided*2, divided*3, timestep));
+			t4 = new Thread(new GravityThread(this, divided*3, divided*4, timestep));
+			t1.start();
+			t2.start();
+			t3.start();
+			t4.start();
+			try
+			{ 
+				t1.join();
+				t2.join();
+				t3.join();
+				t4.join(); 
+			} catch (InterruptedException e){}
 			
 			//Update Particle velocities
 			partIterator = part_list.listIterator();
@@ -107,68 +150,11 @@ class Field
 
 	
 	
-	public void runCollisions(Particle part1, double timestep)
-	{
-		//Wall Collision Detection
-		Particle workingPart;
-		part1.remove = wallCollision(part1);
-		
-		//Particle Absorb Detection
-		if (!part1.remove)
-		{	
-			ListIterator<Particle> partIterator = part_list.listIterator();
-			while(partIterator.hasNext())
-			{
-				workingPart = partIterator.next();
-				absorbCollision(part1, workingPart);
-			}
-		}
-		//Particle 'bounce' Detection
-		if (!part1.remove)
-		{	
-			ListIterator<Particle> partIterator = part_list.listIterator();
-			while(partIterator.hasNext())
-			{
-				workingPart = partIterator.next();
-				pressureCollision(part1, workingPart,timestep);
-			}
-		}
-		
-	}
+	
 	
 	
 
-	///------------------------------------------------------------------
-	/// Calculate acceleration from Gravity between the current Particle
-	/// and the Working Particle. Adds this acceleration to the 
-	/// acceleration vector of the current Particle.
-	///------------------------------------------------------------------ 
-	public void Gravity(Particle part1, Particle part2)
-	{
-		double distance = part1.pos.distance(part2.pos);
-		if (distance < (part1.radius + part2.radius) * 0.1)
-			return;
-		double VectorG = GravG * part2.mass / (distance*distance*distance);
-		
-		part1.acc.addi(VectorG * (part2.pos.x - part1.pos.x), VectorG * (part2.pos.y - part1.pos.y), VectorG * (part2.pos.z - part1.pos.z));
-	}
 	
-	
-	
-	
-	
-	
-	public void updateAcc(Particle part1, double timestep)
-	{
-		part1.acc = new Vec3();
-		
-		ListIterator<Particle> partIterator = part_list.listIterator();
-		while(partIterator.hasNext())
-		{
-			Particle workingPart = partIterator.next();
-			Gravity(part1, workingPart);
-		}	
-	}
 	
 	public void updateVel(Particle part, double timestep)
 	{
@@ -186,92 +172,9 @@ class Field
 	
 	
 	
-	public double findDistance(Particle part1, Particle part2)
-	{
-		return part1.pos.distance(part2.pos);
-	}
-	
-	
-	public void pressureCollision(Particle part1, Particle part2, double timestep)
-	{
-		if (!part1.bounces || !part2.bounces)
-			return;
-		
-		double distance = part1.pos.distance(part2.pos);
-		//Detect and resolve collisions
-		double r = (part2.radius + part1.radius);
-										
-		if (distance >= r)
-			return;
-		
-		//Find unit normal direction between particles
-		Vec3 norm = new Vec3(part2.pos.x - part1.pos.x, part2.pos.y - part1.pos.y, part2.pos.z - part1.pos.z);
-		Vec3 unit_norm = norm;
-		if (norm.length() >= 0.1)
-			unit_norm.divi(norm.length());
-		else
-			return;
-		
-		double restitution = 1.0;
-		//Calculate Relative velocity
-		Vec3 rv = new Vec3(part2.vel.x - part1.vel.x, part2.vel.y - part1.vel.y, part2.vel.z - part1.vel.z);
-		//Calculate Velocity in normal direction and apply restitution if negative
-		double velAlongNorm = rv.DotProduct(unit_norm);
-		if(velAlongNorm > 0)
-			restitution = Math.min(part1.elasticity, part2.elasticity);
-		
-		//Find overlap of particles
-		double overlap = r - distance;
-		
-		double repulse = 0.1 / GravG;// * part1.radius;
-		double press_acc = restitution * repulse * overlap * overlap;//Math.log((overlap*10)+1)
-		
-		//Eventual additional Velocity Vector
-		Vec3 press_vel = unit_norm.mult(press_acc * timestep);
-
-		part2.vel.addi_vec(press_vel.div(part2.mass));//part2.mass
-		part1.vel.addi_vec(press_vel.div(-part1.mass)); //part1.mass
-		
-		return;
-	}
-
-	
-	
-	public void absorbCollision(Particle part1, Particle part2)
-	{	
-		if (part1 == part2 || part1.radius > part2.radius || part1.mass <= 0 || part2.mass <= 0)
-			return;
-		
-		double distance = part1.pos.distance(part2.pos);
-		
-										
-		if (distance >= part2.radius - (part1.radius/1.5))
-			return;
-		
-		part1.remove = true;
-		double mass_add = part1.mass + part2.mass;
-		part2.vel = new Vec3(((part2.vel.x * part2.mass) + (part1.vel.x * part1.mass))/mass_add,
-								((part2.vel.y * part2.mass) + (part1.vel.y * part1.mass))/mass_add,
-								((part2.vel.z * part2.mass) + (part1.vel.z * part1.mass))/mass_add);
-		
-		part2.radius = Math.cbrt((part1.radius*part1.radius*part1.radius) + (part2.radius*part2.radius*part2.radius));
-		//part2.radius = Math.sqrt((part1.radius*part1.radius) + (part2.radius*part2.radius));
-		part2.RGB = new Vec3(((part2.RGB.x * part2.mass) + (part1.RGB.x * part1.mass))/mass_add,
-							((part2.RGB.y * part2.mass) + (part1.RGB.y * part1.mass))/mass_add,
-							((part2.RGB.z * part2.mass) + (part1.RGB.z * part1.mass))/mass_add );
-							
-		part2.pos = new Vec3(((part2.pos.x * part2.mass) + (part1.pos.x * part1.mass))/mass_add,
-							((part2.pos.y * part2.mass) + (part1.pos.y * part1.mass))/mass_add,
-							((part2.pos.z * part2.mass) + (part1.pos.z * part1.mass))/mass_add );
-							
-		part2.mass += part1.mass;
-	}
-	
-	
-	
 	public boolean wallCollision(Particle part1)
 	{
-		if (part1.pos.y > (window.y + part1.radius))
+		if (part1.pos.y > (this.window.y + part1.radius))
 		{
 			return true;
 		}
@@ -281,7 +184,7 @@ class Field
 			return true;
 		}
 		
-		if (part1.pos.x > (window.x + part1.radius))
+		if (part1.pos.x > (this.window.x + part1.radius))
 		{
 			return true;
 		}

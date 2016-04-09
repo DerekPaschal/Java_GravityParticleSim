@@ -52,8 +52,8 @@ public class Main extends JFrame {
 			//Begin timer
 			long new_frame_time = System.nanoTime();
 			
-			double accuracy_multiple = this.game.accuracy_multiple;
-			double secs_per_sec = this.game.secs_per_sec;
+			int	accuracy_multiple = this.game.accuracy_multiple;
+			int secs_per_sec = this.game.secs_per_sec;
 			if (accuracy_multiple <= 0)
 			{
 				System.out.println("Accuracy must be set to 0 or higher!");
@@ -62,7 +62,7 @@ public class Main extends JFrame {
 			
 			double timestep = 1.0/accuracy_multiple;
 			this.game.timestep = timestep;
-			for (int i = 0; i < accuracy_multiple * secs_per_sec; i++)
+			for (long i = 0; i < accuracy_multiple * secs_per_sec; i++)
 				this.game.update();
 			
 			repaint(); // Indirectly calls View.paintComponent in its own thread (?), will paint whenever it feels like it
