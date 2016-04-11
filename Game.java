@@ -105,7 +105,7 @@ class Game
 					partIterator.remove();
 			}
 		}
-		Wait(parts/2);
+		Wait(parts/4);
 	}
 	
 	
@@ -220,7 +220,7 @@ class Game
 				//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 				//double new_mass_min = ((4.0/3.0)*3.14*Math.pow(new_size_min,3) * this.density);
 				//double new_mass_max = ((4.0/3.0)*3.14*Math.pow(new_size_max,3) * this.density);
-				createPartDisk(null,300,0,680,false,true, new Vec3(this.window.x/2,this.window.y/2,0.0),
+				createPartDisk(null,300,0,500,false,true, new Vec3(this.window.x/2,this.window.y/2,0.0),
 									new_size_min, new_size_max, new_density, true, 0.1, 0.2/this.GravG, new Vec3(250,250,250));
 				break;
 				
@@ -288,7 +288,7 @@ class Game
 			//TimeUnit.MILLISECONDS.sleep(10);
 			//} catch (InterruptedException e){}
 			
-			createPartDisk(newPart, 300, 30, 249, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
+			createPartDisk(newPart, 200, 20, 199, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
 			
 		}
 	}
