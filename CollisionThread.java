@@ -1,18 +1,19 @@
 import java.util.*;
 
-class CollisionThread implements Runnable
+class CollisionThread extends Thread
 {
 	static final double GravG = 0.000000000066740831;//Gravitational constant
-	Field field;
+	ArrayList<Particle> part_list;
 	int begin;
 	int end;
 	double timestep;
-	CollisionThread(Field caller_field, double in_begin, double in_end, double in_timestep)
+	
+	CollisionThread(ArrayList<Particle> in_part_list, double in_timestep, double in_begin, double in_end)
 	{
-		this.field = caller_field;
+		this.part_list = in_part_list;
+		this.timestep = in_timestep;
 		this.begin = (int)in_begin;
 		this.end = (int)in_end;
-		this.timestep = in_timestep;
 	}
 	
 	public void run()
@@ -20,7 +21,7 @@ class CollisionThread implements Runnable
 		Particle workingPart;
 		for (int i = begin; i < end; i++)
 		{
-			workingPart = this.field.part_list.get(i);
+			workingPart = this.part_list.get(i);
 			runCollisions(workingPart,timestep);
 		}
 	}
@@ -31,7 +32,7 @@ class CollisionThread implements Runnable
 		//Particle Absorb Detection
 		if (!part1.remove)
 		{	
-			ListIterator<Particle> partIterator = this.field.part_list.listIterator();
+			ListIterator<Particle> partIterator = this.part_list.listIterator();
 			while(partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
@@ -41,7 +42,7 @@ class CollisionThread implements Runnable
 		//Particle 'bounce' Detection
 		if (!part1.remove)
 		{	
-			ListIterator<Particle> partIterator = this.field.part_list.listIterator();
+			ListIterator<Particle> partIterator = this.part_list.listIterator();
 			while(partIterator.hasNext())
 			{
 				workingPart = partIterator.next();
@@ -83,7 +84,7 @@ class CollisionThread implements Runnable
 		//Find overlap of particles
 		double overlap = r - distance;
 		
-		double repulse = 0.1 / GravG;// * part1.radius;
+		double repulse = part1.repulse;// * part1.radius;
 		double press_acc = restitution * repulse * overlap * overlap;//Math.log((overlap*10)+1)
 		
 		//Eventual additional Velocity Vector
@@ -99,31 +100,42 @@ class CollisionThread implements Runnable
 	
 	public void absorbCollision(Particle part1, Particle part2)
 	{	
-		if (part1 == part2 || part1.radius > part2.radius || part1.mass <= 0 || part2.mass <= 0)
+		if (part1 == part2 || part1.mass > part2.mass || (part1.mass < 1 && part2.mass < 1) || part2.remove == true)
 			return;
 		
 		double distance = part1.pos.distance(part2.pos);
 		
-										
-		if (distance >= part2.radius - (part1.radius/1.5))
+		
+		if (distance >= part2.radius && part2.mass >= 1)
+			return;
+		else if (distance >= part2.radius + part1.radius)
 			return;
 		
 		part1.remove = true;
-		double mass_add = part1.mass + part2.mass;
-		part2.vel = new Vec3(((part2.vel.x * part2.mass) + (part1.vel.x * part1.mass))/mass_add,
-								((part2.vel.y * part2.mass) + (part1.vel.y * part1.mass))/mass_add,
-								((part2.vel.z * part2.mass) + (part1.vel.z * part1.mass))/mass_add);
 		
-		part2.radius = Math.cbrt((part1.radius*part1.radius*part1.radius) + (part2.radius*part2.radius*part2.radius));
-		//part2.radius = Math.sqrt((part1.radius*part1.radius) + (part2.radius*part2.radius));
-		part2.RGB = new Vec3(((part2.RGB.x * part2.mass) + (part1.RGB.x * part1.mass))/mass_add,
-							((part2.RGB.y * part2.mass) + (part1.RGB.y * part1.mass))/mass_add,
-							((part2.RGB.z * part2.mass) + (part1.RGB.z * part1.mass))/mass_add );
-							
-		part2.pos = new Vec3(((part2.pos.x * part2.mass) + (part1.pos.x * part1.mass))/mass_add,
-							((part2.pos.y * part2.mass) + (part1.pos.y * part1.mass))/mass_add,
-							((part2.pos.z * part2.mass) + (part1.pos.z * part1.mass))/mass_add );
-							
-		part2.mass += part1.mass;
+		double inverse_total_mass = 0.5;
+		if (part1.mass >= 1 || part2.mass >= 1)
+		{
+			inverse_total_mass = 1.0/(part1.mass + part2.mass);
+		}
+		
+		if(part1.mass >= 1 && part2.mass >= 1)
+		{
+			part2.vel = new Vec3(((part2.vel.x * part2.mass) + (part1.vel.x * part1.mass))*inverse_total_mass,
+									((part2.vel.y * part2.mass) + (part1.vel.y * part1.mass))*inverse_total_mass,
+									((part2.vel.z * part2.mass) + (part1.vel.z * part1.mass))*inverse_total_mass);
+			
+			part2.radius = Math.cbrt((part1.radius*part1.radius*part1.radius) + (part2.radius*part2.radius*part2.radius));
+			
+			part2.RGB = new Vec3(((part2.RGB.x * part2.mass) + (part1.RGB.x * part1.mass))*inverse_total_mass,
+								((part2.RGB.y * part2.mass) + (part1.RGB.y * part1.mass))*inverse_total_mass,
+								((part2.RGB.z * part2.mass) + (part1.RGB.z * part1.mass))*inverse_total_mass );
+								
+			part2.pos = new Vec3(((part2.pos.x * part2.mass) + (part1.pos.x * part1.mass))*inverse_total_mass,
+								((part2.pos.y * part2.mass) + (part1.pos.y * part1.mass))*inverse_total_mass,
+								((part2.pos.z * part2.mass) + (part1.pos.z * part1.mass))*inverse_total_mass );
+								
+			part2.mass += part1.mass;
+		}
 	}
 }

@@ -32,20 +32,15 @@ class View extends JPanel{
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
-		//synchronized(game.field.m_part_list)
-		//{
-			//partIterator = game.m_part_list.listIterator();
-			//while (partIterator.hasNext())
-			Particle workingPart;
-			for (int i = 0; i < this.game.field.part_list.size(); i++)
-			{
-				//Get the current Particle in the list
-				workingPart = this.game.field.part_list.get(i);
-				//workingPart = partIterator.next();
-				if (workingPart != null)
-					workingPart.draw(g2,this.game.coloring);
-			}
-		//}
+		
+		Particle workingPart;
+		for (int i = 0; i < this.game.field.part_list.size(); i++)
+		{
+			workingPart = this.game.field.part_list.get(i);
+			if (workingPart != null)
+				workingPart.draw(g2,this.game.coloring);
+		}
+		
 		
 		
 		
@@ -64,13 +59,16 @@ class View extends JPanel{
 		output = "Particles: " + this.game.field.part_list.size();
 		g.drawString(output, 2, 12);
 		
-		g.setColor(new Color(255,255,255));
-		synchronized(game.field.mass_center)
+		if (this.game.show_center)
 		{
-			g.drawLine((int)this.game.field.mass_center.x -5, (int)this.game.field.mass_center.y, 
-						(int)this.game.field.mass_center.x +5, (int)this.game.field.mass_center.y);
-			g.drawLine((int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y - 5, 
-						(int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y + 5);
+			g.setColor(new Color(255,255,255));
+			synchronized(game.field.mass_center)
+			{
+				g.drawLine((int)this.game.field.mass_center.x -5, (int)this.game.field.mass_center.y, 
+							(int)this.game.field.mass_center.x +5, (int)this.game.field.mass_center.y);
+				g.drawLine((int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y - 5, 
+							(int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y + 5);
+			}
 		}
 	}
 }

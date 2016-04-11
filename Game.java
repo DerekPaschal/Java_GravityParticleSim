@@ -1,8 +1,10 @@
 import java.util.*;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 class Game
 {	
+	static final double GravG = 0.000000000066740831;//Gravitational constant
 	Field field;
 	Vec3 window;
 	double timestep;
@@ -17,6 +19,7 @@ class Game
 	boolean cameraDown;
 	boolean cameraLeft;
 	boolean cameraRight;
+	boolean show_center;
 	double default_density;
 	
 	///State '1' is making central "suns" and clicking creates light orbiting bodys
@@ -36,6 +39,7 @@ class Game
 		this.cameraDown = false;
 		this.cameraLeft = false;
 		this.cameraRight = false;
+		this.show_center = true;
 		this.coloring = 0;
 		this.state = 1;
 		this.accuracy_multiple = 1;
@@ -90,6 +94,7 @@ class Game
 	public void Clear()
 	{
 		Particle workingPart;
+		int parts = field.part_list.size();
 		synchronized(field.part_list)
 		{
 			ListIterator<Particle> partIterator = field.part_list.listIterator();
@@ -100,8 +105,16 @@ class Game
 					partIterator.remove();
 			}
 		}
+		Wait(parts/2);
 	}
 	
+	
+	public void Wait(int millis)
+	{
+		try{
+		TimeUnit.MILLISECONDS.sleep(millis);
+		} catch (InterruptedException e){}
+	}
 	
 	
 	///------------------------------------------------------------------
@@ -120,7 +133,7 @@ class Game
 			{
 				workingPart = partIterator.next();
 				if (workingPart != null)
-					workingPart.pos.y = workingPart.pos.y- (timestep / divide);
+					workingPart.pos.y = workingPart.pos.y- (2*timestep / divide);
 			}
 		}
 	}
@@ -137,7 +150,7 @@ class Game
 			{
 				workingPart = partIterator.next();
 				if (workingPart != null)
-					workingPart.pos.y = workingPart.pos.y+ (timestep / divide);
+					workingPart.pos.y = workingPart.pos.y+ (2*timestep / divide);
 			}
 		}
 	}
@@ -154,7 +167,7 @@ class Game
 			{
 				workingPart = partIterator.next();
 				if (workingPart != null)
-					workingPart.pos.x = workingPart.pos.x- (timestep / divide);
+					workingPart.pos.x = workingPart.pos.x- (2*timestep / divide);
 			}
 		}
 	}
@@ -171,7 +184,7 @@ class Game
 			{
 				workingPart = partIterator.next();
 				if (workingPart != null)
-					workingPart.pos.x = workingPart.pos.x+ (timestep / divide);
+					workingPart.pos.x = workingPart.pos.x+ (2*timestep / divide);
 			}
 		}
 	}
@@ -188,6 +201,9 @@ class Game
 				this.accuracy_multiple = 5;
 				this.secs_per_sec = 2;
 				this.state = 1;
+				this.show_center = true;
+				this.field.collide_on = true;
+				
 				break;
 				
 			case 2:
@@ -195,14 +211,17 @@ class Game
 				this.state = 2;
 				this.accuracy_multiple = 5;
 				this.secs_per_sec = 1;
-				double new_size_min = 3;
-				double new_size_max = 5;
-				double new_density = this.default_density;
+				this.show_center = true;
+				this.field.collide_on = true;
+				
+				double new_size_min = 4;
+				double new_size_max = 6;
+				double new_density = this.default_density*0.75;
 				//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 				//double new_mass_min = ((4.0/3.0)*3.14*Math.pow(new_size_min,3) * this.density);
 				//double new_mass_max = ((4.0/3.0)*3.14*Math.pow(new_size_max,3) * this.density);
-				createPartDisk(null,400*400,0*0,400,false,true, new Vec3(this.window.x/2,this.window.y/2,0.0),
-									new_size_min, new_size_max, new_density, true, 0.0, new Vec3(250,250,250));
+				createPartDisk(null,300,0,680,false,true, new Vec3(this.window.x/2,this.window.y/2,0.0),
+									new_size_min, new_size_max, new_density, true, 0.1, 0.2/this.GravG, new Vec3(250,250,250));
 				break;
 				
 			case 3:
@@ -210,16 +229,8 @@ class Game
 				this.state = 3;
 				this.accuracy_multiple = 5;
 				this.secs_per_sec = 1;
-				double new_size = 20;
-				double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density);
-				Particle newPart = new Particle(new Vec3(150.0,200.0,200.0), new Vec3(), new_size, 0.8, new_mass, true, new Vec3(250,250,250));
-				addNewParticle(newPart);
-				newPart = new Particle(new Vec3(200.0,200.0,-200.0), new Vec3(), new_size, 0.8, new_mass, true, new Vec3(200,200,200));
-				addNewParticle(newPart);
-				newPart = new Particle(new Vec3(1000.0,200.0,0.0), new Vec3(), new_size, 0.8, new_mass, true, new Vec3(150,150,150));
-				addNewParticle(newPart);
-				newPart = new Particle(new Vec3(1000.0,603.0,0.0), new Vec3(), new_size, 0.8, new_mass, true, new Vec3(100,100,100));
-				addNewParticle(newPart);
+				this.show_center = false;
+				this.field.collide_on = true;
 				
 				break;
 		}
@@ -254,8 +265,8 @@ class Game
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
-			Vec3 vel = createOrbitingTraj(null,new_part_pos, new_size, new_mass, true, 0.95, new Vec3(250,250,250));
-			Particle newPart = new Particle(new_part_pos, vel, new_size, 0.8, new_mass, true, new Vec3(250,250,250));
+			Vec3 vel = createOrbitingTraj(null,new_part_pos);
+			Particle newPart = new Particle(new_part_pos, vel, new_size, new_mass, 0.5, 0.1/GravG, true, new Vec3(250,250,250));
 			addNewParticle(newPart);
 		}
 		
@@ -265,22 +276,21 @@ class Game
 			new_part_pos= new Vec3(new_x, new_y,0.0);
 		}
 		
-		//State 3: Creates black hole(?) center with orbiting disk
-		/*
+		//State 3: Creates black hole and disk on click location
 		if (state == 3)
 		{
-			new_part_pos = new Vec3(new_x, new_y,0.0);
-			int new_size = 1;
-			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
-			//double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * density); //Mass dependent on Volume of Sphere
-			double new_mass = 1;
-			Particle newPart = new Particle(new_part_pos, new Vec3(), new_size, 0.0, new_mass, false, new Vec3(250,250,250));
+			int new_size = 5;
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*10);
+			Particle newPart = new Particle(new Vec3(new_x, new_y, 0.0), new Vec3(), new_size, new_mass, 0.0, 0.0, false, new Vec3(200,64,64));
 			addNewParticle(newPart);
-			//double new_mass = 0.0;
-			//Vec3 vel = createOrbitingTraj(null,new_part_pos, new_size, new_mass, true, 0.95, new Vec3(250,250,250));
-			//createNewParticle(new_part_pos, vel, new_size, 0.8, new_mass, true, new Vec3(250,250,250));
+			
+			//try{
+			//TimeUnit.MILLISECONDS.sleep(10);
+			//} catch (InterruptedException e){}
+			
+			createPartDisk(newPart, 300, 30, 1, true, false, new Vec3(), 6.0, 6.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
+			
 		}
-		*/
 	}
 	
 	
@@ -300,10 +310,10 @@ class Game
 			Vec3 vel = new_drag_xy.sub_vec(new_part_pos);
 			vel.divi(80);
 			
-			double new_size = 6;
+			double new_size = 7;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.default_density*2);
-			Particle newPart = new Particle(new_part_pos, vel, new_size, 0.0, new_mass, true, RGB);
+			Particle newPart = new Particle(new_part_pos, vel, new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
 			addNewParticle(newPart);
 			//createPartDisk();
 		}
@@ -347,8 +357,8 @@ class Game
 			if (new_size < 5)
 				new_size = 5;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
-			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.default_density);
-			Particle newPart = new Particle(new_part_pos, new Vec3(), new_size, 1.0, new_mass, false, RGB);
+			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.default_density*2);
+			Particle newPart = new Particle(new_part_pos, new Vec3(), new_size, new_mass, 1.0, 0.1/this.GravG, false, RGB);
 			addNewParticle(newPart);
 		}
 		
@@ -364,7 +374,7 @@ class Game
 				new_size = 100;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.default_density);
-			Particle newPart = new Particle(new_part_pos, new Vec3(), new_size, 0.0, new_mass, true, RGB);
+			Particle newPart = new Particle(new_part_pos, new Vec3(), new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
 			addNewParticle(newPart);
 		}
 	}
@@ -395,11 +405,36 @@ class Game
 	
 	
 	
+	public boolean allow_new_part(Particle testingPart)
+	{	
+		Particle workingPart;
+		double distance_sqrd, r2;
+		synchronized(field.part_list)
+		{
+			ListIterator<Particle> partIterator = this.field.part_list.listIterator();
+			while (partIterator.hasNext())
+			{
+				workingPart = partIterator.next();
+				if (workingPart.bounces)
+				{
+					distance_sqrd = Math.abs((workingPart.pos.x - testingPart.pos.x)*(workingPart.pos.x - testingPart.pos.x) +
+									(workingPart.pos.y - testingPart.pos.y)*(workingPart.pos.y - testingPart.pos.y));
+					r2 = (testingPart.radius + workingPart.radius)*(testingPart.radius + workingPart.radius);
+					if (distance_sqrd < r2)
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	
+	
 	///------------------------------------------------------------------
 	/// Creates a Particle with Inital Values from Arguments that Orbits
 	/// around the current Center of Mass.
 	///------------------------------------------------------------------ 
-	public Vec3 createOrbitingTraj(Particle centerParticle,Vec3 new_pos, double new_size, double new_mass, boolean bounce, double elasticity, Vec3 RGB)
+	public Vec3 createOrbitingTraj(Particle centerParticle,Vec3 new_pos)
 	{	
 		Vec3 centerpos = new Vec3(field.mass_center);
 		double orbitmass = field.total_mass;
@@ -436,25 +471,28 @@ class Game
 	/// Radius, Mass, Bounce, Elasticity, and Color of the particles
 	/// are also Arguments.
 	///------------------------------------------------------------------ 
-	public void createPartDisk(Particle centerParticle,double outer_sqrd_radius,double inner_sqrd_radius, int parts, boolean orbiting, boolean balanced, Vec3 center, 
-								double new_size_min, double new_size_max, double density, boolean bounce, double elasticity, Vec3 RGB)
+	public void createPartDisk(Particle centerParticle,double outer_radius,double inner_radius, int parts, boolean orbiting, boolean balanced, Vec3 center, 
+								double new_size_min, double new_size_max, double density, boolean bounce, double elasticity, double repulse, Vec3 RGB)
 	{
-		double r;
+		double r = 1;
 		double theta;
 		double x;
 		double y;
 		double z;
 		double mass;
 		double size;
+		double center_mass = 0;
 		Vec3 velocity = new Vec3();
 		Vec3 new_pos = new Vec3();
 		Particle newPart;
 		
 		
 		if (centerParticle != null)
-					center = new Vec3(centerParticle.pos);
+		{
+			center = new Vec3(centerParticle.pos);
+			center_mass = centerParticle.mass;
+		}
 		
-			
 		for (int i=0; i < parts; i++)
 		{
 			//mass = (Math.random() * (new_mass_max - new_mass_min)) + new_mass_min;
@@ -462,47 +500,33 @@ class Game
 			mass = ((4.0/3.0)*3.14*Math.pow(size,3) * density);
 			if (balanced)
 			{
-				r = (Math.random() * (outer_sqrd_radius - inner_sqrd_radius)) + inner_sqrd_radius;
+				r = (Math.random() * ((outer_radius*outer_radius) - (inner_radius*inner_radius))) + (inner_radius*inner_radius);
 				theta = Math.random() * 6.28;
 				x = (Math.sqrt(r) * Math.cos(theta)) + center.x;
 				y = (Math.sqrt(r) * Math.sin(theta)) + center.y;
 				z = 0.0;
-				new_pos = new Vec3(x,y,z);
 			}
-			
-			
-			if (!orbiting)
+			else
 			{
-				velocity = new Vec3();
+				r = (Math.random() * (outer_radius - inner_radius)) + inner_radius;
+				theta = Math.random() * 6.28;
+				x = (r * Math.cos(theta)) + center.x;
+				y = (r * Math.sin(theta)) + center.y;
+				z = 0.0;
+			}
+			new_pos = new Vec3(x,y,z);
+			
+			if (orbiting)
+			{	
+				velocity = createOrbitingTraj(centerParticle, new_pos);
 			}
 			
-			newPart = new Particle(new_pos, velocity, size, elasticity, mass, bounce, RGB);
+			newPart = new Particle(new_pos, velocity, size, mass, elasticity, repulse, bounce, RGB);
 			addNewParticle(newPart);
 		}
 	}
 	
-	public boolean allow_new_part(Particle testingPart)
-	{
-		Particle workingPart;
-		double distance_sqrd, r2;
-		synchronized(field.part_list)
-		{
-			ListIterator<Particle> partIterator = this.field.part_list.listIterator();
-			while (partIterator.hasNext())
-			{
-				workingPart = partIterator.next();
-				if (workingPart.bounces)
-				{
-					distance_sqrd = Math.abs((workingPart.pos.x - testingPart.pos.x)*(workingPart.pos.x - testingPart.pos.x) +
-									(workingPart.pos.y - testingPart.pos.y)*(workingPart.pos.y - testingPart.pos.y));
-					r2 = (testingPart.radius + workingPart.radius)*(testingPart.radius + workingPart.radius);
-					if (distance_sqrd < r2)
-						return false;
-				}
-			}
-		}
-		return true;
-	}
+	
 }
 
 

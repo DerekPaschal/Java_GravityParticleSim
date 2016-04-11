@@ -5,10 +5,7 @@ import java.io.*;
 import java.util.*;
 
 class Particle
-{
-	//static final double GravG = 0.000000000066740831;//Gravitational constant
-	
-	double elasticity;
+{	
 	double radius;
 	double mass;
 	
@@ -18,26 +15,27 @@ class Particle
 	Vec3 RGB;
 	
 	boolean bounces;
+	double elasticity;
+	double repulse;
 	boolean remove;
 	
 	///------------------------------------------------------------------
 	/// Construct the particle with all initial conditions as
 	/// parameters to the function.
 	///------------------------------------------------------------------ 
-	Particle(Vec3 new_pos, Vec3 new_vel, double new_radius, double new_elasticity, 
-			double new_mass, boolean new_bounces, Vec3 new_RGB)
+	Particle(Vec3 new_pos, Vec3 new_vel, double new_radius, double new_mass,
+			double new_elasticity, double new_repulse, boolean new_bounces, Vec3 new_RGB)
 	{
 		this.acc = new Vec3();
 		this.vel = new Vec3(new_vel);
 		this.pos = new Vec3(new_pos);
 		this.RGB = new Vec3(new_RGB);
-		
-		radius = new_radius;
-		elasticity = new_elasticity;
-		
-		mass = new_mass;
-		bounces = new_bounces;
-		remove = false;
+		this.radius = new_radius;
+		this.mass = new_mass;
+		this.elasticity = new_elasticity;
+		this.repulse = new_repulse;
+		this.bounces = new_bounces;
+		this.remove = false;
 	}
 	
 	
@@ -47,7 +45,9 @@ class Particle
 		int draw_diameter;
 		int draw_pos_x;
 		int draw_pos_y;
-	
+		
+		this.RGB = new Vec3(Math.min(255, this.RGB.x), Math.min(255, this.RGB.y), Math.min(255, this.RGB.z));
+		
 		//Velocity coloring
 		if (coloring == 1)
 		{
@@ -64,7 +64,7 @@ class Particle
 		double draw_radius = radius;
 		if (draw_radius >= 6 && !bounces)
 		{
-			draw_diameter = (int)(draw_radius *2.2);
+			draw_diameter = (int)(draw_radius *1.1 * 2);
 			draw_pos_x = (int)(this.pos.x - draw_radius * 1.1);
 			draw_pos_y = (int)(this.pos.y - draw_radius * 1.1);
 			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));

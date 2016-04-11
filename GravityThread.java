@@ -1,27 +1,38 @@
 import java.util.*;
 
-class GravityThread implements Runnable
+class GravityThread  extends Thread
 {
 	static final double GravG = 0.000000000066740831;//Gravitational constant
-	Field field;
+	ArrayList<Particle> part_list;
 	int begin;
 	int end;
 	double timestep;
-	GravityThread(Field caller_field, double in_begin, double in_end, double in_timestep)
+	
+	GravityThread(ArrayList<Particle> in_part_list, double in_timestep, double in_begin, double in_end)
 	{
-		this.field = caller_field;
+		this.part_list = in_part_list;
+		this.timestep = in_timestep;
 		this.begin = (int)in_begin;
 		this.end = (int)in_end;
-		this.timestep = in_timestep;
 	}
 	
 	public void run()
 	{
-		Particle workingPart;
+		Particle part1;
 		for (int i = begin; i < end; i++)
 		{
-			workingPart = this.field.part_list.get(i);
-			updateGravAcc(workingPart, this.timestep);
+			part1 = this.part_list.get(i);
+			for (int j = 0; j < this.part_list.size(); j++)
+			{
+				Particle part2 = this.part_list.get(j);
+				
+				double distance = part1.pos.distance(part2.pos);
+				if ((part1 != part2) && (distance >= Math.max(part1.radius, part2.radius)))//distance >= (part1.radius + part2.radius) * 0.1
+				{
+					double VectorG = this.GravG * part2.mass / (distance*distance*distance);
+					part1.acc.addi(VectorG * (part2.pos.x - part1.pos.x), VectorG * (part2.pos.y - part1.pos.y), VectorG * (part2.pos.z - part1.pos.z));
+				}
+			}	
 		}
 	}
 	
@@ -32,22 +43,6 @@ class GravityThread implements Runnable
 	///------------------------------------------------------------------ 
 	public void updateGravAcc(Particle part1, double timestep)
 	{
-		part1.acc = new Vec3();
-		if(!this.field.grav_on)
-			return;
 		
-		//ListIterator<Particle> partIterator = part_list.listIterator();
-		//while(partIterator.hasNext())
-		for (int i = 0; i < this.field.part_list.size(); i++)
-		{
-			Particle part2 = this.field.part_list.get(i);
-			//Gravity(part1, workingPart);
-			double distance = part1.pos.distance(part2.pos);
-			if (distance >= (part1.radius + part2.radius) * 0.1)
-			{
-				double VectorG = this.GravG * part2.mass / (distance*distance*distance);
-				part1.acc.addi(VectorG * (part2.pos.x - part1.pos.x), VectorG * (part2.pos.y - part1.pos.y), VectorG * (part2.pos.z - part1.pos.z));
-			}
-		}	
 	}
 }
