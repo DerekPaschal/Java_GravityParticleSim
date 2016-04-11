@@ -13,11 +13,13 @@ public class Main extends JFrame {
 	Field field;
 	MouseController mousecontroller;
 	KeyController keycontroller;
+	int CoreCount;
 	
 	Vec3 window;
 
 	public Main() throws Exception 
 	{
+		this.CoreCount = Runtime.getRuntime().availableProcessors();
 		
 		this.setTitle("Physics Game");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -28,7 +30,7 @@ public class Main extends JFrame {
 		//this.screen_y = this.getHeight();
 		this.window = new Vec3(this.getWidth(), this.getHeight(), Math.min(this.getWidth(),this.getHeight()));
 		
-		this.field = new Field(this.window);
+		this.field = new Field(this.window,this.CoreCount);
 		this.game = new Game(this.field, this.window);
 		this.view = new View(this.game, this.window);
 		

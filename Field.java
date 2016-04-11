@@ -6,6 +6,7 @@ class Field
 	static final double GravG = 0.000000000066740831;//Gravitational constant
 	ArrayList<Particle> part_list;
 	Vec3 window;
+	int core_count;
 	boolean grav_on;
 	boolean collide_on;
 	
@@ -13,14 +14,17 @@ class Field
 	private Vec3 mass_center_temp;
 	double total_mass;
 	private double total_mass_temp;
+	CollisionThread c1,c2,c3,c4;
+	GravityThread g1,g2,g3,g4;
 	
-	Field(Vec3 new_window)
+	Field(Vec3 new_window, int CoreCount)
 	{
 		//Initializations
 		this.part_list = new ArrayList<Particle>();
 		this.mass_center = new Vec3();
 		this.total_mass = 0.0;
 		this.window = new_window;
+		this.core_count = Math.min(CoreCount,4);
 		
 		this.mass_center_temp = new Vec3();
 		this.total_mass_temp = 0.0;
@@ -40,7 +44,6 @@ class Field
 		synchronized(this.part_list)
 		{
 			ListIterator<Particle> partIterator;
-			double ThreadCount = 4;
 			
 			//Reset particle accelerations
 			for(int i = 0; i < this.part_list.size(); i++)
@@ -61,23 +64,32 @@ class Field
 			//Run particle-particle collision
 			if (collide_on)
 			{
-				double cdivided = this.part_list.size()/ThreadCount;
+				double cdivided = this.part_list.size()/(double)core_count;
 				
-				CollisionThread c1 = new CollisionThread(this.part_list, timestep, 0.0, cdivided);
-				CollisionThread c2 = new CollisionThread(this.part_list, timestep, cdivided, cdivided*2);
-				CollisionThread c3 = new CollisionThread(this.part_list, timestep, cdivided*2, cdivided*3);
-				CollisionThread c4 = new CollisionThread(this.part_list, timestep, cdivided*3, cdivided*4);
+				this.c1 = new CollisionThread(this.part_list, timestep, 0.0, cdivided);
+				if (core_count > 1)
+					this.c2 = new CollisionThread(this.part_list, timestep, cdivided, cdivided*2);
+				if (core_count > 2)
+					this.c3 = new CollisionThread(this.part_list, timestep, cdivided*2, cdivided*3);
+				if (core_count > 3)
+					this.c4 = new CollisionThread(this.part_list, timestep, cdivided*3, cdivided*4);
 				
-				c1.start();
-				c2.start();
-				c3.start();
-				c4.start();
+				this.c1.start();
+				if (core_count > 1)
+					this.c2.start();
+				if (core_count > 2)
+					this.c3.start();
+				if (core_count > 3)
+					this.c4.start();
 				try
 				{ 
-					c1.join();
-					c2.join();
-					c3.join();
-					c4.join(); 
+					this.c1.join();
+					if (core_count > 1)
+						this.c2.join();
+					if (core_count > 2)
+						this.c3.join();
+					if (core_count > 3)
+						this.c4.join(); 
 				} catch (InterruptedException e){}
 			}
 			
@@ -98,23 +110,32 @@ class Field
 			// Update Gravity acceleration
 			if(grav_on)
 			{
-				double gdivided = this.part_list.size()/ThreadCount;
+				double gdivided = this.part_list.size()/(double)core_count;
 				
-				GravityThread g1 = new GravityThread(this.part_list, timestep, 0.0, gdivided);
-				GravityThread g2 = new GravityThread(this.part_list, timestep, gdivided, gdivided*2);
-				GravityThread g3 = new GravityThread(this.part_list, timestep, gdivided*2, gdivided*3);
-				GravityThread g4 = new GravityThread(this.part_list, timestep, gdivided*3, gdivided*4);
+				this.g1 = new GravityThread(this.part_list, timestep, 0.0, gdivided);
+				if (core_count > 1)
+					this.g2 = new GravityThread(this.part_list, timestep, gdivided, gdivided*2);
+				if (core_count > 2)
+					this.g3 = new GravityThread(this.part_list, timestep, gdivided*2, gdivided*3);
+				if (core_count > 3)
+					this.g4 = new GravityThread(this.part_list, timestep, gdivided*3, gdivided*4);
 				
-				g1.start();
-				g2.start();
-				g3.start();
-				g4.start();
+				this.g1.start();
+				if (core_count > 1)
+					this.g2.start();
+				if (core_count > 2)
+					this.g3.start();
+				if (core_count > 3)
+					this.g4.start();
 				try
 				{ 
-					g1.join();
-					g2.join();
-					g3.join();
-					g4.join(); 
+					this.g1.join();
+					if (core_count > 1)
+						this.g2.join();
+					if (core_count > 2)
+						this.g3.join();
+					if (core_count > 3)
+						this.g4.join(); 
 				} catch (InterruptedException e){}
 			}
 			
