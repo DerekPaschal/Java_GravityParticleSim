@@ -24,7 +24,7 @@ class Field
 		this.mass_center = new Vec3();
 		this.total_mass = 0.0;
 		this.window = new_window;
-		this.core_count = Math.min(CoreCount,4);
+		this.core_count = Math.min(CoreCount,8);
 		
 		this.mass_center_temp = new Vec3();
 		this.total_mass_temp = 0.0;
@@ -46,18 +46,12 @@ class Field
 			ListIterator<Particle> partIterator;
 			double thread_count = (double)core_count;
 			
-			//Reset particle accelerations
+			
+			//Run particle-wall collision and reset particle accelerations
 			for(int i = 0; i < this.part_list.size(); i++)
 			{
 				workingPart = this.part_list.get(i);
 				workingPart.acc = new Vec3();
-			}
-			
-			
-			//Run particle-wall collision
-			for(int i = 0; i < this.part_list.size(); i++)
-			{
-				workingPart = this.part_list.get(i);
 				workingPart.remove = wallCollision(workingPart);
 			}
 			
@@ -68,52 +62,52 @@ class Field
 				double cdivided = this.part_list.size()/thread_count;
 				
 				this.c1 = new CollisionThread(this.part_list, timestep, 0.0, cdivided);
-				if (core_count > 1)
+				if (thread_count > 1)
 					this.c2 = new CollisionThread(this.part_list, timestep, cdivided, cdivided*2);
-				if (core_count > 2)
+				if (thread_count > 2)
 					this.c3 = new CollisionThread(this.part_list, timestep, cdivided*2, cdivided*3);
-				if (core_count > 3)
+				if (thread_count > 3)
 					this.c4 = new CollisionThread(this.part_list, timestep, cdivided*3, cdivided*4);
-				if (core_count > 4)
+				if (thread_count > 4)
 					this.c5 = new CollisionThread(this.part_list, timestep, cdivided*4, cdivided*5);
-				if (core_count > 5)
+				if (thread_count > 5)
 					this.c6 = new CollisionThread(this.part_list, timestep, cdivided*5, cdivided*6);
-				if (core_count > 6)
+				if (thread_count > 6)
 					this.c7 = new CollisionThread(this.part_list, timestep, cdivided*6, cdivided*7);
-				if (core_count > 7)
+				if (thread_count > 7)
 					this.c8 = new CollisionThread(this.part_list, timestep, cdivided*7, cdivided*8);
 				
 				this.c1.start();
-				if (core_count > 1)
+				if (thread_count > 1)
 					this.c2.start();
-				if (core_count > 2)
+				if (thread_count > 2)
 					this.c3.start();
-				if (core_count > 3)
+				if (thread_count > 3)
 					this.c4.start();
-				if (core_count > 4)
+				if (thread_count > 4)
 					this.c5.start();
-				if (core_count > 5)
+				if (thread_count > 5)
 					this.c6.start();
-				if (core_count > 6)
+				if (thread_count > 6)
 					this.c7.start();
-				if (core_count > 7)
+				if (thread_count > 7)
 					this.c8.start();
 				try
 				{ 
 					this.c1.join();
-					if (core_count > 1)
+					if (thread_count > 1)
 						this.c2.join();
-					if (core_count > 2)
+					if (thread_count > 2)
 						this.c3.join();
-					if (core_count > 3)
+					if (thread_count > 3)
 						this.c4.join(); 
-					if (core_count > 4)
+					if (thread_count > 4)
 						this.c5.join();
-					if (core_count > 5)
+					if (thread_count > 5)
 						this.c6.join();
-					if (core_count > 6)
+					if (thread_count > 6)
 						this.c7.join();
-					if (core_count > 7)
+					if (thread_count > 7)
 						this.c8.join();
 				} catch (InterruptedException e){}
 			}
@@ -138,29 +132,54 @@ class Field
 				double gdivided = this.part_list.size()/thread_count;
 				
 				this.g1 = new GravityThread(this.part_list, timestep, 0.0, gdivided);
-				if (core_count > 1)
+				if (thread_count > 1)
 					this.g2 = new GravityThread(this.part_list, timestep, gdivided, gdivided*2);
-				if (core_count > 2)
+				if (thread_count > 2)
 					this.g3 = new GravityThread(this.part_list, timestep, gdivided*2, gdivided*3);
-				if (core_count > 3)
+				if (thread_count > 3)
 					this.g4 = new GravityThread(this.part_list, timestep, gdivided*3, gdivided*4);
+				if (thread_count > 4)
+					this.g5 = new GravityThread(this.part_list, timestep, gdivided*4, gdivided*5);
+				if (thread_count > 5)
+					this.g6 = new GravityThread(this.part_list, timestep, gdivided*5, gdivided*6);
+				if (thread_count > 6)
+					this.g7 = new GravityThread(this.part_list, timestep, gdivided*6, gdivided*7);
+				if (thread_count > 7)
+					this.g8 = new GravityThread(this.part_list, timestep, gdivided*7, gdivided*8);
 				
 				this.g1.start();
-				if (core_count > 1)
+				if (thread_count > 1)
 					this.g2.start();
-				if (core_count > 2)
+				if (thread_count > 2)
 					this.g3.start();
-				if (core_count > 3)
+				if (thread_count > 3)
 					this.g4.start();
+				if (thread_count > 4)
+					this.g5.start();
+				if (thread_count > 5)
+					this.g6.start();
+				if (thread_count > 6)
+					this.g7.start();
+				if (thread_count > 7)
+					this.g8.start();
+				
 				try
 				{ 
 					this.g1.join();
-					if (core_count > 1)
+					if (thread_count > 1)
 						this.g2.join();
-					if (core_count > 2)
+					if (thread_count > 2)
 						this.g3.join();
-					if (core_count > 3)
+					if (thread_count > 3)
 						this.g4.join(); 
+					if (thread_count > 4)
+						this.g5.join();
+					if (thread_count > 5)
+						this.g6.join();
+					if (thread_count > 6)
+						this.g7.join(); 
+					if (thread_count > 7)
+						this.g8.join(); 
 				} catch (InterruptedException e){}
 			}
 			

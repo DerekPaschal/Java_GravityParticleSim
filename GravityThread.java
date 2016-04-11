@@ -22,17 +22,20 @@ class GravityThread  extends Thread
 		for (int i = begin; i < end; i++)
 		{
 			part1 = this.part_list.get(i);
-			for (int j = 0; j < this.part_list.size(); j++)
+			if(!part1.remove)
 			{
-				Particle part2 = this.part_list.get(j);
-				
-				double distance = part1.pos.distance(part2.pos);
-				if ((part1 != part2) && (distance >= Math.max(part1.radius, part2.radius)))//distance >= (part1.radius + part2.radius) * 0.1
+				for (int j = 0; j < this.part_list.size(); j++)
 				{
-					double VectorG = this.GravG * part2.mass / (distance*distance*distance);
-					part1.acc.addi(VectorG * (part2.pos.x - part1.pos.x), VectorG * (part2.pos.y - part1.pos.y), VectorG * (part2.pos.z - part1.pos.z));
-				}
-			}	
+					Particle part2 = this.part_list.get(j);
+					
+					double distance = part1.pos.distance(part2.pos);
+					if ((part1 != part2) && (distance >= Math.max(part1.radius, part2.radius)) && !part2.remove)//distance >= (part1.radius + part2.radius) * 0.1
+					{
+						double VectorG = this.GravG * part2.mass / (distance*distance*distance);
+						part1.acc.addi(VectorG * (part2.pos.x - part1.pos.x), VectorG * (part2.pos.y - part1.pos.y), VectorG * (part2.pos.z - part1.pos.z));
+					}
+				}	
+			}
 		}
 	}
 	

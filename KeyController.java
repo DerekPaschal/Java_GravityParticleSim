@@ -62,6 +62,16 @@ class KeyController implements KeyListener
 			case 71 : //'g'
 				this.game.field.grav_on = !this.game.field.grav_on;
 				break;
+				
+			case 44 : //'<'
+				this.game.field.core_count = Math.max(this.game.field.core_count-1,1);
+				System.out.println("" + this.game.field.core_count);
+				break;
+				
+			case 46 : //'>'
+				this.game.field.core_count = Math.min(this.game.field.core_count+1,8);
+				System.out.println("" + this.game.field.core_count);
+				break;
 		}
 	}
 	public void keyReleased(KeyEvent k)

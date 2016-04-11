@@ -34,13 +34,15 @@ class View extends JPanel{
 		
 		
 		Particle workingPart;
-		for (int i = 0; i < this.game.field.part_list.size(); i++)
+		synchronized(this.game.field.part_list)
 		{
-			workingPart = this.game.field.part_list.get(i);
-			if (workingPart != null)
-				workingPart.draw(g2,this.game.coloring);
+			for (int i = 0; i < this.game.field.part_list.size(); i++)
+			{
+				workingPart = this.game.field.part_list.get(i);
+				if (workingPart != null)
+					workingPart.draw(g2,this.game.coloring);
+			}
 		}
-		
 		
 		
 		
@@ -52,6 +54,9 @@ class View extends JPanel{
 		
 		output = "Accuracy: " + this.game.accuracy_multiple;
 		g.drawString(output, 2, 42);
+		
+		output = "Threads: " + this.game.field.core_count;
+		g.drawString(output, 2, 57);
 			
 		if (is_lag)
 			g.setColor(new Color(255, 132, 132));

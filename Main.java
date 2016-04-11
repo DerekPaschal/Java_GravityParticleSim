@@ -68,9 +68,9 @@ public class Main extends JFrame {
 				this.game.update();
 			
 			repaint(); // Indirectly calls View.paintComponent in its own thread (?), will paint whenever it feels like it
-			//try{
-			//TimeUnit.MILLISECONDS.sleep(1);
-			//} catch (InterruptedException e){}
+			try{
+			TimeUnit.MILLISECONDS.sleep(1);
+			} catch (InterruptedException e){}
 			
 			
 			//End Timer
