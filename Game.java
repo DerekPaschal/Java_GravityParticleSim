@@ -280,7 +280,7 @@ class Game
 		if (state == 3)
 		{
 			int new_size = 5;
-			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*10);
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*1000);
 			Particle newPart = new Particle(new Vec3(new_x, new_y, 0.0), new Vec3(), new_size, new_mass, 0.0, 0.0, false, new Vec3(200,64,64));
 			addNewParticle(newPart);
 			
@@ -288,7 +288,7 @@ class Game
 			//TimeUnit.MILLISECONDS.sleep(10);
 			//} catch (InterruptedException e){}
 			
-			createPartDisk(newPart, 300, 30, 1, true, false, new Vec3(), 6.0, 6.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
+			createPartDisk(newPart, 300, 30, 249, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
 			
 		}
 	}

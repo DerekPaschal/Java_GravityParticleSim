@@ -105,10 +105,9 @@ class CollisionThread extends Thread
 		
 		double distance = part1.pos.distance(part2.pos);
 		
-		
-		if (distance >= part2.radius && part2.mass >= 1)
+		if (distance >= part2.radius && part1.mass >= 1)
 			return;
-		else if (distance >= part2.radius + part1.radius)
+		if (distance >= part2.radius + part1.radius)
 			return;
 		
 		part1.remove = true;
