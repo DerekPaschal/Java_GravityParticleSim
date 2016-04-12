@@ -34,14 +34,11 @@ class View extends JPanel{
 		
 		
 		Particle workingPart;
-		synchronized(this.game.field.part_list)
+		for (int i = 0; i < this.game.field.part_list.size(); i++)
 		{
-			for (int i = 0; i < this.game.field.part_list.size(); i++)
-			{
-				workingPart = this.game.field.part_list.get(i);
-				if (workingPart != null)
-					workingPart.draw(g2,this.game.coloring);
-			}
+			workingPart = this.game.field.part_list.get(i);
+			if (workingPart != null)
+				workingPart.draw(g2,this.game.coloring);
 		}
 		
 		

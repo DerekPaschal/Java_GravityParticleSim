@@ -220,8 +220,8 @@ class Game
 				//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 				//double new_mass_min = ((4.0/3.0)*3.14*Math.pow(new_size_min,3) * this.density);
 				//double new_mass_max = ((4.0/3.0)*3.14*Math.pow(new_size_max,3) * this.density);
-				createPartDisk(null,300,0,500,false,true, new Vec3(this.window.x/2,this.window.y/2,0.0),
-									new_size_min, new_size_max, new_density, true, 0.1, 0.2/this.GravG, new Vec3(250,250,250));
+				createPartDisk(null,300,0,600,false,true, new Vec3(this.window.x/2,this.window.y/2,0.0),
+									new_size_min, new_size_max, new_density, true, 0.0, 0.2/this.GravG, new Vec3(250,250,250));
 				break;
 				
 			case 3:
@@ -231,6 +231,7 @@ class Game
 				this.secs_per_sec = 1;
 				this.show_center = false;
 				this.field.collide_on = true;
+				this.coloring = 1;
 				
 				break;
 		}
@@ -284,12 +285,7 @@ class Game
 			Particle newPart = new Particle(new Vec3(new_x, new_y, 0.0), new Vec3(), new_size, new_mass, 0.0, 0.0, false, new Vec3(200,64,64));
 			addNewParticle(newPart);
 			
-			//try{
-			//TimeUnit.MILLISECONDS.sleep(10);
-			//} catch (InterruptedException e){}
-			
-			createPartDisk(newPart, 200, 20, 199, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
-			
+			createPartDisk(newPart, 200, 20, 399, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
 		}
 	}
 	

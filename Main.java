@@ -69,7 +69,7 @@ public class Main extends JFrame {
 			
 			repaint(); // Indirectly calls View.paintComponent in its own thread (?), will paint whenever it feels like it
 			try{
-			TimeUnit.MILLISECONDS.sleep(1);
+			TimeUnit.MILLISECONDS.sleep(2);
 			} catch (InterruptedException e){}
 			
 			

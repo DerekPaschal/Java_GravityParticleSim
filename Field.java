@@ -15,7 +15,7 @@ class Field
 	double total_mass;
 	private double total_mass_temp;
 	CollisionThread c1,c2,c3,c4,c5,c6,c7,c8;
-	GravityThread g1,g2,g3,g4,g5,g6,g7,g8;
+	//GravityThread g1,g2,g3,g4,g5,g6,g7,g8;
 	
 	Field(Vec3 new_window, int CoreCount)
 	{
@@ -24,7 +24,7 @@ class Field
 		this.mass_center = new Vec3();
 		this.total_mass = 0.0;
 		this.window = new_window;
-		this.core_count = Math.min(CoreCount,8);
+		this.core_count = Math.min(CoreCount,7); //Currently no improvement is noted when core_count > 7
 		
 		this.mass_center_temp = new Vec3();
 		this.total_mass_temp = 0.0;
@@ -60,38 +60,64 @@ class Field
 			double cdivided = this.part_list.size()/thread_count;
 			
 			this.c1 = new CollisionThread(this.part_list, timestep, 0.0, cdivided, collide_on, grav_on);
-			if (thread_count > 1)
-				this.c2 = new CollisionThread(this.part_list, timestep, cdivided, cdivided*2, this.collide_on, this.grav_on);
-			if (thread_count > 2)
-				this.c3 = new CollisionThread(this.part_list, timestep, cdivided*2, cdivided*3, this.collide_on, this.grav_on);
-			if (thread_count > 3)
-				this.c4 = new CollisionThread(this.part_list, timestep, cdivided*3, cdivided*4, this.collide_on, this.grav_on);
-			if (thread_count > 4)
-				this.c5 = new CollisionThread(this.part_list, timestep, cdivided*4, cdivided*5, this.collide_on, this.grav_on);
-			if (thread_count > 5)
-				this.c6 = new CollisionThread(this.part_list, timestep, cdivided*5, cdivided*6, this.collide_on, this.grav_on);
-			if (thread_count > 6)
-				this.c7 = new CollisionThread(this.part_list, timestep, cdivided*6, cdivided*7, this.collide_on, this.grav_on);
-			if (thread_count > 7)
-				this.c8 = new CollisionThread(this.part_list, timestep, cdivided*7, cdivided*8, this.collide_on, this.grav_on);
-			
 			this.c1.start();
 			if (thread_count > 1)
+			{
+				this.c2 = new CollisionThread(this.part_list, timestep, cdivided, cdivided*2, this.collide_on, this.grav_on);
 				this.c2.start();
+			}
 			if (thread_count > 2)
+			{
+				this.c3 = new CollisionThread(this.part_list, timestep, cdivided*2, cdivided*3, this.collide_on, this.grav_on);
 				this.c3.start();
+			}
 			if (thread_count > 3)
+			{
+				this.c4 = new CollisionThread(this.part_list, timestep, cdivided*3, cdivided*4, this.collide_on, this.grav_on);
 				this.c4.start();
+			}
 			if (thread_count > 4)
+			{
+				this.c5 = new CollisionThread(this.part_list, timestep, cdivided*4, cdivided*5, this.collide_on, this.grav_on);
 				this.c5.start();
+			}
 			if (thread_count > 5)
+			{
+				this.c6 = new CollisionThread(this.part_list, timestep, cdivided*5, cdivided*6, this.collide_on, this.grav_on);
 				this.c6.start();
+			}
 			if (thread_count > 6)
+			{
+				this.c7 = new CollisionThread(this.part_list, timestep, cdivided*6, cdivided*7, this.collide_on, this.grav_on);
 				this.c7.start();
+			}
 			if (thread_count > 7)
+			{
+				this.c8 = new CollisionThread(this.part_list, timestep, cdivided*7, cdivided*8, this.collide_on, this.grav_on);
 				this.c8.start();
+			}
+				
 			try
 			{ 
+				/*
+				if (thread_count == 1)
+					this.c1.join();
+				if (thread_count == 2)
+					this.c2.join();
+				if (thread_count == 3)
+					this.c3.join(); 
+				if (thread_count == 4)
+					this.c4.join();
+				if (thread_count == 5)
+					this.c5.join();
+				if (thread_count == 6)
+					this.c6.join();
+				if (thread_count == 7)
+					this.c7.join();
+				if (thread_count == 8)
+					this.c8.join();
+				*/
+				
 				this.c1.join();
 				if (thread_count > 1)
 					this.c2.join();
@@ -107,8 +133,9 @@ class Field
 					this.c7.join();
 				if (thread_count > 7)
 					this.c8.join();
+				
+				
 			} catch (InterruptedException e){}
-			
 			
 			
 			//Remove particles no longer in the field
@@ -121,62 +148,6 @@ class Field
 				}
 			}
 			
-			
-			/*
-			// Update Gravity acceleration
-			double gdivided = this.part_list.size()/thread_count;
-			
-			this.g1 = new GravityThread(this.part_list, timestep, 0.0, gdivided);
-			if (thread_count > 1)
-				this.g2 = new GravityThread(this.part_list, timestep, gdivided, gdivided*2);
-			if (thread_count > 2)
-				this.g3 = new GravityThread(this.part_list, timestep, gdivided*2, gdivided*3);
-			if (thread_count > 3)
-				this.g4 = new GravityThread(this.part_list, timestep, gdivided*3, gdivided*4);
-			if (thread_count > 4)
-				this.g5 = new GravityThread(this.part_list, timestep, gdivided*4, gdivided*5);
-			if (thread_count > 5)
-				this.g6 = new GravityThread(this.part_list, timestep, gdivided*5, gdivided*6);
-			if (thread_count > 6)
-				this.g7 = new GravityThread(this.part_list, timestep, gdivided*6, gdivided*7);
-			if (thread_count > 7)
-				this.g8 = new GravityThread(this.part_list, timestep, gdivided*7, gdivided*8);
-			
-			this.g1.start();
-			if (thread_count > 1)
-				this.g2.start();
-			if (thread_count > 2)
-				this.g3.start();
-			if (thread_count > 3)
-				this.g4.start();
-			if (thread_count > 4)
-				this.g5.start();
-			if (thread_count > 5)
-				this.g6.start();
-			if (thread_count > 6)
-				this.g7.start();
-			if (thread_count > 7)
-				this.g8.start();
-			
-			try
-			{ 
-				this.g1.join();
-				if (thread_count > 1)
-					this.g2.join();
-				if (thread_count > 2)
-					this.g3.join();
-				if (thread_count > 3)
-					this.g4.join(); 
-				if (thread_count > 4)
-					this.g5.join();
-				if (thread_count > 5)
-					this.g6.join();
-				if (thread_count > 6)
-					this.g7.join(); 
-				if (thread_count > 7)
-					this.g8.join(); 
-			} catch (InterruptedException e){}
-			*/
 			
 			//Update Particle velocities
 			partIterator = part_list.listIterator();
@@ -272,5 +243,96 @@ class Field
 		return false;
 	}
 
+	/*
+	public void pressureCollision(Particle part1, Particle part2, double timestep)
+	{
+		if (!part1.bounces || !part2.bounces)
+			return;
+		
+		double distance = part1.pos.distance(part2.pos);
+		//Detect and resolve collisions
+		double r = (part2.radius + part1.radius);
+										
+		if (distance >= r)
+			return;
+		
+		//Find unit normal direction between particles
+		Vec3 norm = new Vec3(part2.pos.x - part1.pos.x, part2.pos.y - part1.pos.y, part2.pos.z - part1.pos.z);
+		Vec3 unit_norm = norm;
+		if (norm.length() >= 0.1)
+			unit_norm.divi(norm.length());
+		else
+			return;
+		
+		double restitution = 1.0;
+		//Calculate Relative velocity
+		Vec3 rv = new Vec3(part2.vel.x - part1.vel.x, part2.vel.y - part1.vel.y, part2.vel.z - part1.vel.z);
+		//Calculate Velocity in normal direction and apply restitution if negative
+		double velAlongNorm = rv.DotProduct(unit_norm);
+		if(velAlongNorm > 0)
+			restitution = Math.min(part1.elasticity, part2.elasticity);
+		
+		//Find overlap of particles
+		double overlap = r - distance;
+		
+		double repulse = part1.repulse;// * part1.radius;
+		double press_acc = restitution * repulse * overlap * overlap;//Math.log((overlap*10)+1)
+		
+		//Eventual additional Velocity Vector
+		Vec3 press_vel = unit_norm.mult(press_acc * timestep);
+
+		part2.vel.addi_vec(press_vel.div(part2.mass));//part2.mass
+		part1.vel.addi_vec(press_vel.div(-part1.mass)); //part1.mass
+		
+		return;
+	}
+	
+	public void absorbCollision(Particle part1, Particle part2)
+	{	
+		if (part1 == part2 || (part1.mass < 1 && part2.mass < 1))
+			return;
+		
+		double distance = part1.pos.distance(part2.pos);
+		
+		if ((distance >= Math.max(part2.radius, part1.radius)) && ((part1.mass >= 1) && (part2.mass >= 1)) )
+			return;
+		if (distance >= (part1.radius + part2.radius))
+			return;
+		
+		if (part1.mass >= part2.mass)
+			part2.remove = true;
+		if (part2.mass > part1.mass)
+			part1.remove = true;
+		
+		double inverse_total_mass = 0.5;
+		if (part1.mass >= 1 || part2.mass >= 1)
+		{
+			inverse_total_mass = 1.0/(part1.mass + part2.mass);
+		}
+		
+		if(part1.mass >= 1 && part2.mass >= 1)
+		{
+			Particle heavyPart = part1;
+			if (part2.mass > part1.mass)
+				heavyPart = part2;
+			
+			heavyPart.vel = new Vec3(((part2.vel.x * part2.mass) + (part1.vel.x * part1.mass))*inverse_total_mass,
+									((part2.vel.y * part2.mass) + (part1.vel.y * part1.mass))*inverse_total_mass,
+									((part2.vel.z * part2.mass) + (part1.vel.z * part1.mass))*inverse_total_mass);
+			
+			heavyPart.radius = Math.cbrt((part1.radius*part1.radius*part1.radius) + (part2.radius*part2.radius*part2.radius));
+			
+			heavyPart.RGB = new Vec3(((part2.RGB.x * part2.mass) + (part1.RGB.x * part1.mass))*inverse_total_mass,
+								((part2.RGB.y * part2.mass) + (part1.RGB.y * part1.mass))*inverse_total_mass,
+								((part2.RGB.z * part2.mass) + (part1.RGB.z * part1.mass))*inverse_total_mass );
+								
+			heavyPart.pos = new Vec3(((part2.pos.x * part2.mass) + (part1.pos.x * part1.mass))*inverse_total_mass,
+								((part2.pos.y * part2.mass) + (part1.pos.y * part1.mass))*inverse_total_mass,
+								((part2.pos.z * part2.mass) + (part1.pos.z * part1.mass))*inverse_total_mass );
+								
+			heavyPart.mass = part1.mass + part2.mass;
+		}
+	}
+	*/
 	
 }
