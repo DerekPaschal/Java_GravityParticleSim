@@ -7,51 +7,49 @@ class CollisionThread extends Thread
 	int begin;
 	int end;
 	double timestep;
+	boolean grav_on, collide_on;
 	
-	CollisionThread(ArrayList<Particle> in_part_list, double in_timestep, double in_begin, double in_end)
+	CollisionThread(ArrayList<Particle> in_part_list, double in_timestep, double in_begin, double in_end, boolean in_collide_on, boolean in_grav_on)
 	{
 		this.part_list = in_part_list;
 		this.timestep = in_timestep;
 		this.begin = (int)in_begin;
 		this.end = (int)in_end;
+		this.grav_on = in_grav_on;
+		this.collide_on = in_grav_on;
 	}
 	
 	public void run()
 	{
-		Particle workingPart;
+		Particle part1;
+		Particle part2;
+		
 		for (int i = begin; i < end; i++)
 		{
-			workingPart = this.part_list.get(i);
-			runCollisions(workingPart,timestep);
-		}
-	}
-	
-	public void runCollisions(Particle part1, double timestep)
-	{
-		Particle workingPart;
-		//Particle Absorb Detection
-		if (!part1.remove)
-		{	
-			ListIterator<Particle> partIterator = this.part_list.listIterator();
-			while(partIterator.hasNext())
+			part1 = this.part_list.get(i);
+			
+			for (int j = 0; j < this.part_list.size(); j++)
 			{
-				workingPart = partIterator.next();
-				absorbCollision(part1, workingPart);
+				part2 = this.part_list.get(j);
+				
+				//Do Absorbsion Collision
+				if((!part1.remove) && (!part2.remove) && (collide_on) && (part1 != part2))
+					absorbCollision(part1,part2);
+				
+				//Do 'Bounce' Collision
+				if((!part1.remove) && (collide_on) && (!part2.remove) && (part1 != part2))
+						pressureCollision(part1,part2,timestep);
+				
+				//Do Gravity Calculation
+				if ((grav_on) && (part1 != part2) && (!part1.remove) && (!part2.remove))//&& (distance >= Math.max(part1.radius, part2.radius))
+				{
+					double distance = part1.pos.distance(part2.pos);
+					double VectorG = this.GravG * part2.mass / (distance*distance*distance);
+					part1.acc.addi(VectorG * (part2.pos.x - part1.pos.x), VectorG * (part2.pos.y - part1.pos.y), VectorG * (part2.pos.z - part1.pos.z));
+				}
 			}
 		}
-		//Particle 'bounce' Detection
-		if (!part1.remove)
-		{	
-			ListIterator<Particle> partIterator = this.part_list.listIterator();
-			while(partIterator.hasNext())
-			{
-				workingPart = partIterator.next();
-				pressureCollision(part1, workingPart,timestep);
-			}
-		}
-		
 	}
-	
 	
 	public void pressureCollision(Particle part1, Particle part2, double timestep)
 	{
@@ -100,17 +98,20 @@ class CollisionThread extends Thread
 	
 	public void absorbCollision(Particle part1, Particle part2)
 	{	
-		if (part1 == part2 || part1.mass > part2.mass || (part1.mass < 1 && part2.mass < 1) || part2.remove == true)
+		if (part1 == part2 || (part1.mass < 1 && part2.mass < 1))
 			return;
 		
 		double distance = part1.pos.distance(part2.pos);
 		
-		if (distance >= part2.radius && part1.mass >= 1)
+		if ((distance >= Math.max(part2.radius, part1.radius)) && ((part1.mass >= 1) || (part2.mass >= 1)) )
 			return;
-		if (distance >= part2.radius + part1.radius)
+		if (distance >= (part1.radius + part2.radius))
 			return;
 		
-		part1.remove = true;
+		if (part1.mass >= part2.mass)
+			part2.remove = true;
+		if (part2.mass > part1.mass)
+			part1.remove = true;
 		
 		double inverse_total_mass = 0.5;
 		if (part1.mass >= 1 || part2.mass >= 1)
@@ -120,21 +121,25 @@ class CollisionThread extends Thread
 		
 		if(part1.mass >= 1 && part2.mass >= 1)
 		{
-			part2.vel = new Vec3(((part2.vel.x * part2.mass) + (part1.vel.x * part1.mass))*inverse_total_mass,
+			Particle heavyPart = part1;
+			if (part2.mass > part1.mass)
+				heavyPart = part2;
+			
+			heavyPart.vel = new Vec3(((part2.vel.x * part2.mass) + (part1.vel.x * part1.mass))*inverse_total_mass,
 									((part2.vel.y * part2.mass) + (part1.vel.y * part1.mass))*inverse_total_mass,
 									((part2.vel.z * part2.mass) + (part1.vel.z * part1.mass))*inverse_total_mass);
 			
-			part2.radius = Math.cbrt((part1.radius*part1.radius*part1.radius) + (part2.radius*part2.radius*part2.radius));
+			heavyPart.radius = Math.cbrt((part1.radius*part1.radius*part1.radius) + (part2.radius*part2.radius*part2.radius));
 			
-			part2.RGB = new Vec3(((part2.RGB.x * part2.mass) + (part1.RGB.x * part1.mass))*inverse_total_mass,
+			heavyPart.RGB = new Vec3(((part2.RGB.x * part2.mass) + (part1.RGB.x * part1.mass))*inverse_total_mass,
 								((part2.RGB.y * part2.mass) + (part1.RGB.y * part1.mass))*inverse_total_mass,
 								((part2.RGB.z * part2.mass) + (part1.RGB.z * part1.mass))*inverse_total_mass );
 								
-			part2.pos = new Vec3(((part2.pos.x * part2.mass) + (part1.pos.x * part1.mass))*inverse_total_mass,
+			heavyPart.pos = new Vec3(((part2.pos.x * part2.mass) + (part1.pos.x * part1.mass))*inverse_total_mass,
 								((part2.pos.y * part2.mass) + (part1.pos.y * part1.mass))*inverse_total_mass,
 								((part2.pos.z * part2.mass) + (part1.pos.z * part1.mass))*inverse_total_mass );
 								
-			part2.mass += part1.mass;
+			heavyPart.mass = part1.mass + part2.mass;
 		}
 	}
 }

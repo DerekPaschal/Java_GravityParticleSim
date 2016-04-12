@@ -32,7 +32,6 @@ class KeyController implements KeyListener
 				
 			case 88 : //'x'
 				this.game.Clear();
-				//this.game.ClearNotAdded();
 				break;
 				
 			case KeyEvent.VK_1 : //'1'
@@ -65,12 +64,10 @@ class KeyController implements KeyListener
 				
 			case 44 : //'<'
 				this.game.field.core_count = Math.max(this.game.field.core_count-1,1);
-				System.out.println("" + this.game.field.core_count);
 				break;
 				
 			case 46 : //'>'
 				this.game.field.core_count = Math.min(this.game.field.core_count+1,8);
-				System.out.println("" + this.game.field.core_count);
 				break;
 		}
 	}
