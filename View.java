@@ -34,12 +34,15 @@ class View extends JPanel{
 		
 		
 		Particle workingPart;
-		for (int i = 0; i < this.game.field.part_list.size(); i++)
-		{
-			workingPart = this.game.field.part_list.get(i);
-			if (workingPart != null)
-				workingPart.draw(g2,this.game.coloring);
-		}
+		//synchronized(this.game.field.part_list)
+		//{
+			for (int i = 0; i < this.game.field.part_list.size(); i++)
+			{
+				workingPart = this.game.field.part_list.get(i);
+				if (workingPart != null)
+					workingPart.draw(g2,this.game.coloring);
+			}
+		//}
 		
 		
 		
@@ -52,7 +55,7 @@ class View extends JPanel{
 		output = "Accuracy: " + this.game.accuracy_multiple;
 		g.drawString(output, 2, 42);
 		
-		output = "Threads: " + this.game.field.core_count;
+		output = "Threads: " + this.game.field.calc_threads;
 		g.drawString(output, 2, 57);
 			
 		if (is_lag)
@@ -64,13 +67,10 @@ class View extends JPanel{
 		if (this.game.show_center)
 		{
 			g.setColor(new Color(255,255,255));
-			synchronized(game.field.mass_center)
-			{
-				g.drawLine((int)this.game.field.mass_center.x -5, (int)this.game.field.mass_center.y, 
-							(int)this.game.field.mass_center.x +5, (int)this.game.field.mass_center.y);
-				g.drawLine((int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y - 5, 
-							(int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y + 5);
-			}
+			g.drawLine((int)this.game.field.mass_center.x -5, (int)this.game.field.mass_center.y, 
+						(int)this.game.field.mass_center.x +5, (int)this.game.field.mass_center.y);
+			g.drawLine((int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y - 5, 
+						(int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y + 5);
 		}
 	}
 }

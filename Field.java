@@ -6,7 +6,7 @@ class Field
 	static final double GravG = 0.000000000066740831;//Gravitational constant
 	ArrayList<Particle> part_list;
 	Vec3 window;
-	int core_count;
+	int calc_threads;
 	boolean grav_on;
 	boolean collide_on;
 	
@@ -14,7 +14,7 @@ class Field
 	private Vec3 mass_center_temp;
 	double total_mass;
 	private double total_mass_temp;
-	CollisionThread c1,c2,c3,c4,c5,c6,c7,c8;
+	SimThread c1,c2,c3,c4,c5,c6,c7,c8;
 	//GravityThread g1,g2,g3,g4,g5,g6,g7,g8;
 	
 	Field(Vec3 new_window, int CoreCount)
@@ -24,7 +24,7 @@ class Field
 		this.mass_center = new Vec3();
 		this.total_mass = 0.0;
 		this.window = new_window;
-		this.core_count = Math.min(CoreCount,7); //Currently no improvement is noted when core_count > 7
+		this.calc_threads = Math.min(CoreCount-2,8);
 		
 		this.mass_center_temp = new Vec3();
 		this.total_mass_temp = 0.0;
@@ -44,7 +44,7 @@ class Field
 		synchronized(this.part_list)
 		{
 			ListIterator<Particle> partIterator;
-			double thread_count = (double)(core_count);
+			double thread_count = (double)(calc_threads);
 			
 			
 			//Run particle-wall collision and reset particle accelerations
@@ -59,41 +59,41 @@ class Field
 			//Run particle-particle collision
 			double cdivided = this.part_list.size()/thread_count;
 			
-			this.c1 = new CollisionThread(this.part_list, timestep, 0.0, cdivided, collide_on, grav_on);
+			this.c1 = new SimThread(this.part_list, timestep, 0.0, cdivided, collide_on, grav_on);
 			this.c1.start();
 			if (thread_count > 1)
 			{
-				this.c2 = new CollisionThread(this.part_list, timestep, cdivided, cdivided*2, this.collide_on, this.grav_on);
+				this.c2 = new SimThread(this.part_list, timestep, cdivided, cdivided*2, this.collide_on, this.grav_on);
 				this.c2.start();
 			}
 			if (thread_count > 2)
 			{
-				this.c3 = new CollisionThread(this.part_list, timestep, cdivided*2, cdivided*3, this.collide_on, this.grav_on);
+				this.c3 = new SimThread(this.part_list, timestep, cdivided*2, cdivided*3, this.collide_on, this.grav_on);
 				this.c3.start();
 			}
 			if (thread_count > 3)
 			{
-				this.c4 = new CollisionThread(this.part_list, timestep, cdivided*3, cdivided*4, this.collide_on, this.grav_on);
+				this.c4 = new SimThread(this.part_list, timestep, cdivided*3, cdivided*4, this.collide_on, this.grav_on);
 				this.c4.start();
 			}
 			if (thread_count > 4)
 			{
-				this.c5 = new CollisionThread(this.part_list, timestep, cdivided*4, cdivided*5, this.collide_on, this.grav_on);
+				this.c5 = new SimThread(this.part_list, timestep, cdivided*4, cdivided*5, this.collide_on, this.grav_on);
 				this.c5.start();
 			}
 			if (thread_count > 5)
 			{
-				this.c6 = new CollisionThread(this.part_list, timestep, cdivided*5, cdivided*6, this.collide_on, this.grav_on);
+				this.c6 = new SimThread(this.part_list, timestep, cdivided*5, cdivided*6, this.collide_on, this.grav_on);
 				this.c6.start();
 			}
 			if (thread_count > 6)
 			{
-				this.c7 = new CollisionThread(this.part_list, timestep, cdivided*6, cdivided*7, this.collide_on, this.grav_on);
+				this.c7 = new SimThread(this.part_list, timestep, cdivided*6, cdivided*7, this.collide_on, this.grav_on);
 				this.c7.start();
 			}
 			if (thread_count > 7)
 			{
-				this.c8 = new CollisionThread(this.part_list, timestep, cdivided*7, cdivided*8, this.collide_on, this.grav_on);
+				this.c8 = new SimThread(this.part_list, timestep, cdivided*7, cdivided*8, this.collide_on, this.grav_on);
 				this.c8.start();
 			}
 				

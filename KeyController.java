@@ -63,11 +63,11 @@ class KeyController implements KeyListener
 				break;
 				
 			case 44 : //'<'
-				this.game.field.core_count = Math.max(this.game.field.core_count-1,1);
+				this.game.field.calc_threads = Math.max(this.game.field.calc_threads-1,1);
 				break;
 				
 			case 46 : //'>'
-				this.game.field.core_count = Math.min(this.game.field.core_count+1,8);
+				this.game.field.calc_threads = Math.min(this.game.field.calc_threads+1,8);
 				break;
 		}
 	}

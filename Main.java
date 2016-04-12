@@ -67,14 +67,14 @@ public class Main extends JFrame {
 			for (long i = 0; i < accuracy_multiple * secs_per_sec; i++)
 				this.game.update();
 			
-			repaint(); // Indirectly calls View.paintComponent in its own thread (?), will paint whenever it feels like it
+			repaint(0); // Indirectly calls View.paintComponent in its own thread (?), will paint whenever it feels like it
 			try{
-			TimeUnit.MILLISECONDS.sleep(2);
+			TimeUnit.MILLISECONDS.sleep(1);
 			} catch (InterruptedException e){}
 			
 			
 			//End Timer
-			long wait_time =(long)(17000000 - (System.nanoTime() - new_frame_time));//17000000
+			long wait_time =(long)(20000000 - (System.nanoTime() - new_frame_time));//17000000
 			
 			//This block is not measured by wait_time
 			this.view.is_lag = (wait_time < 0);

@@ -10,7 +10,7 @@ class Game
 	double timestep;
 	int secs_per_sec;
 	int accuracy_multiple;
-	Vec3 new_part_pos;
+	Vec3 new_click_xy;
 	Vec3 new_drag_xy;
 	
 	
@@ -33,8 +33,8 @@ class Game
 		this.field = new_field;
 		
 		//Defaults
-		new_part_pos = new Vec3();
-		new_drag_xy = new Vec3();
+		this.new_click_xy = new Vec3();
+		this.new_drag_xy = new Vec3();
 		this.cameraUp = false;
 		this.cameraDown = false;
 		this.cameraLeft = false;
@@ -261,32 +261,33 @@ class Game
 		//State 1: Creates a Small Orbiting Bouncy Particle around the Center of Mass
 		if (state == 1)
 		{
-			new_part_pos = new Vec3(new_x, new_y,0.0);
+			new_click_xy = new Vec3(new_x, new_y,0.0);
 			int new_size = 3;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density); //Mass dependent on Volume of Sphere
 			//double new_mass = 0.0;
-			Vec3 vel = createOrbitingTraj(null,new_part_pos);
-			Particle newPart = new Particle(new_part_pos, vel, new_size, new_mass, 0.5, 0.1/GravG, true, new Vec3(250,250,250));
+			Vec3 vel = createOrbitingTraj(null,new_click_xy);
+			Particle newPart = new Particle(new_click_xy, vel, new_size, new_mass, 0.5, 0.1/GravG, true, new Vec3(250,250,250));
 			addNewParticle(newPart);
 		}
 		
-		//State 2: Gets Current Mouse Position, stores in new_part_pos
+		//State 2: Gets Current Mouse Position, stores in new_click_xy
 		if (state == 2)
 		{
-			new_part_pos= new Vec3(new_x, new_y,0.0);
+			new_click_xy= new Vec3(new_x, new_y,0.0);
 		}
 		
-		//State 3: Creates black hole and disk on click location
+		//State 3: Creates 'black hole' and disk on click location
 		if (state == 3)
 		{
 			int new_size = 5;
-			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*1000);
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*400);
 			Particle newPart = new Particle(new Vec3(new_x, new_y, 0.0), new Vec3(), new_size, new_mass, 0.0, 0.0, false, new Vec3(200,64,64));
-			addNewParticle(newPart);
 			
-			createPartDisk(newPart, 200, 20, 399, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
+			createPartDisk(newPart, 200, 20, 999, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
+			addNewParticle(newPart);
 		}
+		
 	}
 	
 	
@@ -297,22 +298,24 @@ class Game
 	///------------------------------------------------------------------
 	public void ClickRelease(int new_x, int new_y)
 	{	
-		//State 2: Creates Randomly Colored Bouncy Particle; Velocity related to Current Mouse Position distance from new_part_pos
+		//State 2: Creates Randomly Colored Bouncy Particle; Velocity related to Current Mouse Position distance from new_click_xy
 		if (state == 2)
 		{
 			Vec3 RGB = new Vec3((int)(Math.random()*132) + 123,(int)(Math.random()*132) + 123,(int)(Math.random()*132) + 123);
 			new_drag_xy = new Vec3(new_x, new_y, 0.0);
 			
-			Vec3 vel = new_drag_xy.sub_vec(new_part_pos);
+			Vec3 vel = new_drag_xy.sub_vec(new_click_xy);
 			vel.divi(80);
 			
 			double new_size = 7;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.default_density*2);
-			Particle newPart = new Particle(new_part_pos, vel, new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
+			Particle newPart = new Particle(new_click_xy, vel, new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
 			addNewParticle(newPart);
 			//createPartDisk();
 		}
+		
+		
 	}
 	
 	
@@ -323,17 +326,24 @@ class Game
 	///------------------------------------------------------------------
 	public void RightClick(int new_x, int new_y)
 	{
-		//State 1: Gets Current Mouse Position, stores in new_part_pos 
+		//State 1: Gets Current Mouse Position, stores in new_click_xy 
 		if (state == 1)
 		{
-			new_part_pos = new Vec3(new_x, new_y, 0.0);
+			new_click_xy = new Vec3(new_x, new_y, 0.0);
 		}
 		
-		//State 2: Gets Current Mouse Position, stores in new_part_pos 
+		//State 2: Gets Current Mouse Position, stores in new_click_xy 
 		if (state == 2)
 		{
-			new_part_pos = new Vec3(new_x, new_y, 0.0);
+			new_click_xy = new Vec3(new_x, new_y, 0.0);
 		}
+		
+		
+		if (state ==3)
+		{
+			new_click_xy = new Vec3(new_x, new_y, 0.0);
+		}
+		
 	}
 	
 	
@@ -344,33 +354,46 @@ class Game
 	///------------------------------------------------------------------
 	public void RightRelease(int new_x, int new_y)
 	{	
-		//State 1: Creates Randomly Colored Particle; Radius and Mass related to Current Mouse Position distance from new_part_pos
+		//State 1: Creates Randomly Colored Particle; Radius and Mass related to Current Mouse Position distance from new_click_xy
 		if (state == 1)
 		{
 			Vec3 RGB = new Vec3((int)(Math.random()*132) + 123, (int)(Math.random()*132) + 123, (int)(Math.random()*132) + 123);
 			new_drag_xy = new Vec3(new_x, new_y, 0.0);
-			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
+			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_click_xy.x,2) + Math.pow(new_drag_xy.y - new_click_xy.y,2));
 			if (new_size < 5)
 				new_size = 5;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.default_density*2);
-			Particle newPart = new Particle(new_part_pos, new Vec3(), new_size, new_mass, 1.0, 0.1/this.GravG, false, RGB);
+			Particle newPart = new Particle(new_click_xy, new Vec3(), new_size, new_mass, 1.0, 0.1/this.GravG, false, RGB);
 			addNewParticle(newPart);
 		}
 		
-		//State 2: Creates Randomly Colored Bouncy Particle; Radius and Mass related to Current Mouse Position distance from new_part_pos
+		//State 2: Creates Randomly Colored Bouncy Particle; Radius and Mass related to Current Mouse Position distance from new_click_xy
 		if (state == 2)
 		{
 			Vec3 RGB = new Vec3((int)(Math.random()*132) + 123, (int)(Math.random()*132) + 123, (int)(Math.random()*132) + 123);
 			new_drag_xy = new Vec3(new_x, new_y, 0.0);
-			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_part_pos.x,2) + Math.pow(new_drag_xy.y - new_part_pos.y,2));
+			double new_size = Math.sqrt(Math.pow(new_drag_xy.x - new_click_xy.x,2) + Math.pow(new_drag_xy.y - new_click_xy.y,2));
 			if (new_size < 3)
 				new_size = 3;
 			if (new_size > 100)
 				new_size = 100;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.default_density);
-			Particle newPart = new Particle(new_part_pos, new Vec3(), new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
+			Particle newPart = new Particle(new_click_xy, new Vec3(), new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
+			addNewParticle(newPart);
+		}
+		
+		if (state ==3)
+		{
+			Vec3 new_vel = new_click_xy.sub_vec(new Vec3(new_x, new_y, 0.0));
+			new_vel.divi(-80);
+			
+			int new_size = 5;
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*400);
+			Particle newPart = new Particle(new_click_xy, new_vel, new_size, new_mass, 0.0, 0.0, false, new Vec3(200,64,64));
+			
+			//createPartDisk(newPart, 200, 20, 999, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
 			addNewParticle(newPart);
 		}
 	}
