@@ -28,7 +28,7 @@ public class Main extends JFrame {
 		
 		//this.screen_x = this.getWidth();
 		//this.screen_y = this.getHeight();
-		this.window = new Vec3(this.getWidth(), this.getHeight(), Math.min(this.getWidth(),this.getHeight()));
+		this.window = new Vec3(this.getWidth()-16, this.getHeight()-39, Math.min(this.getWidth(),this.getHeight()));
 		
 		this.field = new Field(this.window,this.CoreCount);
 		this.game = new Game(this.field, this.window);

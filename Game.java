@@ -281,10 +281,10 @@ class Game
 		if (state == 3)
 		{
 			int new_size = 5;
-			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*400);
-			Particle newPart = new Particle(new Vec3(new_x, new_y, 0.0), new Vec3(), new_size, new_mass, 0.0, 0.0, false, new Vec3(200,64,64));
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*500);
+			Particle newPart = new Particle(new Vec3(new_x, new_y, 0.0), new Vec3(), new_size, new_mass, 0.0, 0.0, false, new Vec3(100,0,0));
 			
-			createPartDisk(newPart, 200, 20, 999, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
+			createPartDisk(newPart, 200, 20, 499, true, false, new Vec3(), 4.0, 5.0, 0.0, false, 0.0, 0.0, new Vec3(240,240,240));
 			addNewParticle(newPart);
 		}
 		
@@ -339,10 +339,10 @@ class Game
 		}
 		
 		
-		if (state ==3)
-		{
-			new_click_xy = new Vec3(new_x, new_y, 0.0);
-		}
+		//if (state ==3)
+		//{
+		//	new_click_xy = new Vec3(new_x, new_y, 0.0);
+		//}
 		
 	}
 	
@@ -383,19 +383,20 @@ class Game
 			Particle newPart = new Particle(new_click_xy, new Vec3(), new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
 			addNewParticle(newPart);
 		}
-		
+		/*
 		if (state ==3)
 		{
 			Vec3 new_vel = new_click_xy.sub_vec(new Vec3(new_x, new_y, 0.0));
 			new_vel.divi(-80);
 			
 			int new_size = 5;
-			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*400);
+			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*500);
 			Particle newPart = new Particle(new_click_xy, new_vel, new_size, new_mass, 0.0, 0.0, false, new Vec3(200,64,64));
 			
 			//createPartDisk(newPart, 200, 20, 999, true, false, new Vec3(), 3.0, 4.0, 0.0, false, 0.0, 0.0, new Vec3(255,255,255));
 			addNewParticle(newPart);
 		}
+		*/
 	}
 	
 	
