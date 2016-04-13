@@ -286,7 +286,7 @@ class Game
 			
 			synchronized (this.field)
 			{
-				createPartDisk(newPart, 300, 20, 499, true, false, new Vec3(), 4.0, 5.0, 0.0, false, 0.0, 0.0, new Vec3(240,240,240));
+				createPartDisk(newPart, 200, 20, 799, true, false, new Vec3(), 4.0, 5.0, 0.0, false, 0.0, 0.0, new Vec3(240,240,240));
 				addNewParticle(newPart);
 			}
 		}
