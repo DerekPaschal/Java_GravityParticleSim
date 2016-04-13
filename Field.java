@@ -1,5 +1,8 @@
 import java.util.*;
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
 class Field
 {	
@@ -14,8 +17,8 @@ class Field
 	private Vec3 mass_center_temp;
 	double total_mass;
 	private double total_mass_temp;
-	SimThread c1,c2,c3,c4,c5,c6,c7,c8;
-	//GravityThread g1,g2,g3,g4,g5,g6,g7,g8;
+	
+	ExecutorService executor;
 	
 	Field(Vec3 new_window, int CoreCount)
 	{
@@ -24,197 +27,99 @@ class Field
 		this.mass_center = new Vec3();
 		this.total_mass = 0.0;
 		this.window = new_window;
-		this.calc_threads = Math.min(CoreCount-2,8);
+		this.calc_threads = Math.min(CoreCount,8);
 		
 		this.mass_center_temp = new Vec3();
 		this.total_mass_temp = 0.0;
 		this.grav_on = true;
 		this.collide_on = true;
+		
+		executor = Executors.newFixedThreadPool(8);
 	}
 	
 	
 	
-	public void EulerIntegrate(double timestep)
+	public synchronized void EulerIntegrate(double timestep)
 	{
 		//Reset running totals for center of mass and total mass
 		total_mass_temp = 0.0;
 		mass_center_temp = new Vec3();
-		Particle workingPart;
+		Particle part1;
 		
-		synchronized(this.part_list)
+		ListIterator<Particle> partIterator;
+		double thread_count = (double)(calc_threads);
+		
+		//Run particle-wall collision and reset particle accelerations
+		for(int i = 0; i < this.part_list.size(); i++)
 		{
-			ListIterator<Particle> partIterator;
-			double thread_count = (double)(calc_threads);
-			
-			
-			//Run particle-wall collision and reset particle accelerations
-			for(int i = 0; i < this.part_list.size(); i++)
-			{
-				workingPart = this.part_list.get(i);
-				workingPart.acc = new Vec3();
-				workingPart.remove = wallCollision(workingPart);
-			}
-			
-			
-			//Run particle-particle collision
-			double cdivided = this.part_list.size()/thread_count;
-			
-			this.c1 = new SimThread(this.part_list, timestep, 0.0, cdivided, collide_on, grav_on);
-			this.c1.start();
-			if (thread_count > 1)
-			{
-				this.c2 = new SimThread(this.part_list, timestep, cdivided, cdivided*2, this.collide_on, this.grav_on);
-				this.c2.start();
-			}
-			if (thread_count > 2)
-			{
-				this.c3 = new SimThread(this.part_list, timestep, cdivided*2, cdivided*3, this.collide_on, this.grav_on);
-				this.c3.start();
-			}
-			if (thread_count > 3)
-			{
-				this.c4 = new SimThread(this.part_list, timestep, cdivided*3, cdivided*4, this.collide_on, this.grav_on);
-				this.c4.start();
-			}
-			if (thread_count > 4)
-			{
-				this.c5 = new SimThread(this.part_list, timestep, cdivided*4, cdivided*5, this.collide_on, this.grav_on);
-				this.c5.start();
-			}
-			if (thread_count > 5)
-			{
-				this.c6 = new SimThread(this.part_list, timestep, cdivided*5, cdivided*6, this.collide_on, this.grav_on);
-				this.c6.start();
-			}
-			if (thread_count > 6)
-			{
-				this.c7 = new SimThread(this.part_list, timestep, cdivided*6, cdivided*7, this.collide_on, this.grav_on);
-				this.c7.start();
-			}
-			if (thread_count > 7)
-			{
-				this.c8 = new SimThread(this.part_list, timestep, cdivided*7, cdivided*8, this.collide_on, this.grav_on);
-				this.c8.start();
-			}
-				
-			try
-			{ 
-				/*
-				if (thread_count == 1)
-					this.c1.join();
-				if (thread_count == 2)
-					this.c2.join();
-				if (thread_count == 3)
-					this.c3.join(); 
-				if (thread_count == 4)
-					this.c4.join();
-				if (thread_count == 5)
-					this.c5.join();
-				if (thread_count == 6)
-					this.c6.join();
-				if (thread_count == 7)
-					this.c7.join();
-				if (thread_count == 8)
-					this.c8.join();
-				*/
-				
-				this.c1.join();
-				if (thread_count > 1)
-					this.c2.join();
-				if (thread_count > 2)
-					this.c3.join();
-				if (thread_count > 3)
-					this.c4.join(); 
-				if (thread_count > 4)
-					this.c5.join();
-				if (thread_count > 5)
-					this.c6.join();
-				if (thread_count > 6)
-					this.c7.join();
-				if (thread_count > 7)
-					this.c8.join();
-				
-				
-			} catch (InterruptedException e){}
-			
-			
-			//Remove particles no longer in the field
-			for(int i = 0; i < this.part_list.size(); i++)
-			{
-				workingPart = this.part_list.get(i);
-				if (workingPart.remove)
-				{
-					this.part_list.remove(i);
-				}
-			}
-			
-			
-			//Update Particle velocities
-			partIterator = part_list.listIterator();
-			while (partIterator.hasNext())
-			{
-				workingPart = partIterator.next();
-				updateVel(workingPart, timestep);
-			}
-			
-			
-			// Update Particle positions
-			partIterator = part_list.listIterator();
-			while (partIterator.hasNext())
-			{
-				workingPart = partIterator.next();
-				//System.out.println(""+workingPart.vel.x);
-				updatePos(workingPart, timestep);
-			}
-			
-			
-			// Update Center of Mass position
-			partIterator = part_list.listIterator();
-			while (partIterator.hasNext())
-			{
-				workingPart = partIterator.next();
-				//Running totals for center of mass and total mass
-				mass_center_temp.addi(workingPart.mass * workingPart.pos.x, workingPart.mass * workingPart.pos.y, workingPart.mass * workingPart.pos.z);
-				total_mass_temp += workingPart.mass;
-			}
-			
+			part1 = this.part_list.get(i);
+			part1.acc = new Vec3();
+			part1.remove = wallCollision(part1);
 		}
 		
-			//How to calculate center of mass
-			if (total_mass_temp >= 1)
-				mass_center_temp.divi(total_mass_temp);
-			else
-				mass_center_temp = new Vec3(window.x/2, window.y/2, 0.0);
-			//Apply center of mass to public variables
-			synchronized(mass_center)
+		
+		//Run particle-particle collision
+		double divided = this.part_list.size()/thread_count;
+		boolean t_grav_on = this.grav_on;
+		boolean t_collide_on = this.collide_on;
+		
+		CountDownLatch latch = new CountDownLatch(calc_threads);
+		for (int i = 0; i<calc_threads;i++)
+		{
+			executor.execute(new EulerThread(this.part_list, timestep, divided * i,divided * (i+1),t_grav_on,t_collide_on,latch));
+		}
+		
+		//Wait
+		try {latch.await();}catch(InterruptedException e){}
+		
+		//Remove particles no longer in the field
+		for(int i = 0; i < this.part_list.size(); i++)
+		{
+			part1 = this.part_list.get(i);
+			if (part1.remove)
 			{
-				mass_center = new Vec3(mass_center_temp);
-				total_mass = total_mass_temp;
+				this.part_list.remove(i);
 			}
+		}
+		
+		
+		//Do Velocity and Position Update
+		for(int i = 0; i < this.part_list.size(); i++)
+		{
+			part1 = this.part_list.get(i);
 			
+			part1.vel.x = part1.vel.x + (part1.acc.x * timestep);
+			part1.vel.y = part1.vel.y + (part1.acc.y * timestep);
+			part1.vel.z = part1.vel.z + (part1.acc.z * timestep);
 			
-	}
-
+			part1.pos.x = part1.pos.x + (part1.vel.x * timestep);
+			part1.pos.y = part1.pos.y + (part1.vel.y * timestep);
+			part1.pos.z = part1.pos.z + (part1.vel.z * timestep);
+		}
+		
+		
+		// Update Center of Mass position
+		partIterator = part_list.listIterator();
+		while (partIterator.hasNext())
+		{
+			part1 = partIterator.next();
+			//Running totals for center of mass and total mass
+			mass_center_temp.addi(part1.mass * part1.pos.x, part1.mass * part1.pos.y, part1.mass * part1.pos.z);
+			total_mass_temp += part1.mass;
+		}
+		
 	
-	
-	
-	
-	
-
-	
-	
-	public void updateVel(Particle part, double timestep)
-	{
-		part.vel.x = part.vel.x + (part.acc.x * timestep);
-		part.vel.y = part.vel.y + (part.acc.y * timestep);
-		part.vel.z = part.vel.z + (part.acc.z * timestep);
-	}
-	
-	public void updatePos(Particle part, double timestep)
-	{
-		part.pos.x = part.pos.x + (part.vel.x * timestep);
-		part.pos.y = part.pos.y + (part.vel.y * timestep);
-		part.pos.z = part.pos.z + (part.vel.z * timestep);
+		//How to calculate center of mass
+		if (total_mass_temp >= 1)
+			mass_center_temp.divi(total_mass_temp);
+		else
+			mass_center_temp = new Vec3(window.x/2, window.y/2, 0.0);
+		//Apply center of mass to public variables
+		synchronized(mass_center)
+		{
+			mass_center = new Vec3(mass_center_temp);
+			total_mass = total_mass_temp;
+		}	
 	}
 	
 	

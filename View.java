@@ -34,15 +34,15 @@ class View extends JPanel{
 		
 		
 		Particle workingPart;
-		//synchronized(this.game.field.part_list)
-		//{
+		synchronized(this.game.field)
+		{
 			for (int i = 0; i < this.game.field.part_list.size(); i++)
 			{
 				workingPart = this.game.field.part_list.get(i);
 				if (workingPart != null)
 					workingPart.draw(g2,this.game.coloring);
 			}
-		//}
+		}
 		
 		
 		
@@ -67,10 +67,13 @@ class View extends JPanel{
 		if (this.game.show_center)
 		{
 			g.setColor(new Color(255,255,255));
-			g.drawLine((int)this.game.field.mass_center.x -5, (int)this.game.field.mass_center.y, 
-						(int)this.game.field.mass_center.x +5, (int)this.game.field.mass_center.y);
-			g.drawLine((int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y - 5, 
-						(int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y + 5);
+			synchronized(this.game.field.mass_center)
+			{
+				g.drawLine((int)this.game.field.mass_center.x -5, (int)this.game.field.mass_center.y, 
+							(int)this.game.field.mass_center.x +5, (int)this.game.field.mass_center.y);
+				g.drawLine((int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y - 5, 
+							(int)this.game.field.mass_center.x, (int)this.game.field.mass_center.y + 5);
+			}
 		}
 	}
 }

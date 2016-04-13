@@ -95,7 +95,7 @@ class Game
 	{
 		Particle workingPart;
 		int parts = field.part_list.size();
-		synchronized(field.part_list)
+		synchronized(this.field)
 		{
 			ListIterator<Particle> partIterator = field.part_list.listIterator();
 			while (partIterator.hasNext())
@@ -125,7 +125,7 @@ class Game
 	public void movePartsUp()
 	{
 		Particle workingPart;
-		synchronized(field.part_list)
+		synchronized(this.field)
 		{
 			double divide = Math.max(secs_per_sec,1);
 			ListIterator<Particle> partIterator = field.part_list.listIterator();
@@ -142,7 +142,7 @@ class Game
 	public void movePartsDown()
 	{
 		Particle workingPart;
-		synchronized(field.part_list)
+		synchronized(this.field)
 		{
 			double divide = Math.max(secs_per_sec,1);
 			ListIterator<Particle> partIterator = field.part_list.listIterator();
@@ -159,7 +159,7 @@ class Game
 	public void movePartsLeft()
 	{
 		Particle workingPart;
-		synchronized(field.part_list)
+		synchronized(this.field)
 		{
 			double divide = Math.max(secs_per_sec,1);
 			ListIterator<Particle> partIterator = field.part_list.listIterator();
@@ -176,7 +176,7 @@ class Game
 	public void movePartsRight()
 	{
 		Particle workingPart;
-		synchronized(field.part_list)
+		synchronized(this.field)
 		{
 			double divide = Math.max(secs_per_sec,1);
 			ListIterator<Particle> partIterator = field.part_list.listIterator();
@@ -227,7 +227,7 @@ class Game
 			case 3:
 				this.Clear();
 				this.state = 3;
-				this.accuracy_multiple = 5;
+				this.accuracy_multiple = 1;
 				this.secs_per_sec = 1;
 				this.show_center = false;
 				this.field.collide_on = true;
@@ -284,8 +284,11 @@ class Game
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) * this.default_density*500);
 			Particle newPart = new Particle(new Vec3(new_x, new_y, 0.0), new Vec3(), new_size, new_mass, 0.0, 0.0, false, new Vec3(100,0,0));
 			
-			createPartDisk(newPart, 200, 20, 499, true, false, new Vec3(), 4.0, 5.0, 0.0, false, 0.0, 0.0, new Vec3(240,240,240));
-			addNewParticle(newPart);
+			synchronized (this.field)
+			{
+				createPartDisk(newPart, 300, 20, 499, true, false, new Vec3(), 4.0, 5.0, 0.0, false, 0.0, 0.0, new Vec3(240,240,240));
+				addNewParticle(newPart);
+			}
 		}
 		
 	}
@@ -312,10 +315,7 @@ class Game
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.default_density*2);
 			Particle newPart = new Particle(new_click_xy, vel, new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
 			addNewParticle(newPart);
-			//createPartDisk();
 		}
-		
-		
 	}
 	
 	
@@ -416,7 +416,7 @@ class Game
 	///------------------------------------------------------------------ 
 	public void addNewParticle(Particle part)
 	{
-		synchronized(field.part_list)
+		synchronized(this.field)
 		{
 			if (allow_new_part(part))
 				field.part_list.add(part);
@@ -429,7 +429,7 @@ class Game
 	{	
 		Particle workingPart;
 		double distance_sqrd, r2;
-		synchronized(field.part_list)
+		synchronized(this.field)
 		{
 			ListIterator<Particle> partIterator = this.field.part_list.listIterator();
 			while (partIterator.hasNext())

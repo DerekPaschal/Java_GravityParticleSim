@@ -1,22 +1,25 @@
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 
-class SimThread extends Thread
+class EulerRun implements Runnable
 {
 	static final double GravG = 0.000000000066740831;//Gravitational constant
 	ArrayList<Particle> part_list;
-	int begin;
-	int end;
+	int begin, end;
 	double timestep;
 	boolean grav_on, collide_on;
+	CountDownLatch latch;
 	
-	SimThread(ArrayList<Particle> in_part_list, double in_timestep, double in_begin, double in_end, boolean in_collide_on, boolean in_grav_on)
-	{
+	EulerRun(ArrayList<Particle> in_part_list, double in_timestep, double in_begin, double in_end, boolean in_grav_on, boolean in_collide_on, CountDownLatch latch)
+	{	
 		this.part_list = in_part_list;
 		this.timestep = in_timestep;
 		this.begin = (int)in_begin;
 		this.end = (int)in_end;
 		this.grav_on = in_grav_on;
-		this.collide_on = in_grav_on;
+		this.collide_on = in_collide_on;
+		this.latch = latch;
 	}
 	
 	public void run()
@@ -110,7 +113,12 @@ class SimThread extends Thread
 					double VectorG = this.GravG * part2.mass / (distance*distance*distance);
 					part1.acc.addi(VectorG * (part2.pos.x - part1.pos.x), VectorG * (part2.pos.y - part1.pos.y), VectorG * (part2.pos.z - part1.pos.z));
 				}
-			}
+			}	
+			
+			
+			
+			
 		}
+		latch.countDown();
 	}
 }
