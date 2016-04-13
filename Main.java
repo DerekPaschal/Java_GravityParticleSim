@@ -46,7 +46,7 @@ public class Main extends JFrame{
 		MainTask main_task = new MainTask(this);
 		
 		//SimControl();
-		new Timer(true).schedule(main_task, 25,25);
+		new Timer(true).schedule(main_task, 300,30);
 	}
 	
 /*	
