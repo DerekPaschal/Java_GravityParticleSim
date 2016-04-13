@@ -38,9 +38,7 @@ class View extends JPanel{
 		{
 			for (int i = 0; i < this.game.field.part_list.size(); i++)
 			{
-				workingPart = this.game.field.part_list.get(i);
-				if (workingPart != null)
-					workingPart.draw(g2,this.game.coloring);
+				this.game.field.part_list.get(i).draw(g2,this.game.coloring);
 			}
 		}
 		
