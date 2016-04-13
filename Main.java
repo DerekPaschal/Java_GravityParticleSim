@@ -2,12 +2,13 @@ import javax.swing.JFrame;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.*;
-import javax.swing.Timer;
+//import javax.swing.Timer;
 import java.io.IOException;
-import java.util.*;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-public class Main extends JFrame {
+public class Main extends JFrame{
 	Game game;
 	View view;
 	Field field;
@@ -25,9 +26,7 @@ public class Main extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setVisible(true);
 		this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
-		
-		//this.screen_x = this.getWidth();
-		//this.screen_y = this.getHeight();
+
 		this.window = new Vec3(this.getWidth()-16, this.getHeight()-39, Math.min(this.getWidth(),this.getHeight()));
 		
 		this.field = new Field(this.window,this.CoreCount);
@@ -44,9 +43,13 @@ public class Main extends JFrame {
 		this.view.addMouseListener(this.mousecontroller);
 		this.view.addKeyListener(this.keycontroller);
 		
-		SimControl();
+		MainTask main_task = new MainTask(this);
+		
+		//SimControl();
+		new Timer(true).schedule(main_task, 20, 20);
 	}
-
+	
+/*	
 	public void SimControl()
 	{
 		while (true)
@@ -86,7 +89,7 @@ public class Main extends JFrame {
 			}
 		}
 	}
-
+*/
 	public static void main(String[] args) throws Exception {
 		new Main();
 	}
