@@ -66,7 +66,7 @@ class Field
 		CountDownLatch latch = new CountDownLatch(calc_threads);
 		for (int i = 0; i<calc_threads;i++)
 		{
-			executor.execute(new EulerThread(this.part_list, timestep, divided * i,divided * (i+1),t_grav_on,t_collide_on,latch));
+			executor.execute(new EulerRun(this.part_list, timestep, divided * i,divided * (i+1),t_grav_on,t_collide_on,latch));
 		}
 		
 		//Wait
