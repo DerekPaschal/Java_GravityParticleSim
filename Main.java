@@ -72,14 +72,14 @@ public class Main extends JFrame{
 			
 			
 			//End Timer
-			long wait_time =(long)(20000000 - (System.nanoTime() - new_frame_time));//17000000
+			long wait_time =(long)(17000000 - (System.nanoTime() - new_frame_time));//17000000
 			
 			//This block is not measured by wait_time
-			this.view.is_lag = (wait_time < 0);
+			//this.view.is_lag = (wait_time < 0);
 			if (wait_time > 0)
 			{
 				try{
-				TimeUnit.NANOSECONDS.sleep(wait_time-1000);
+				TimeUnit.NANOSECONDS.sleep(wait_time);
 				} catch (InterruptedException e){}
 			}
 		}

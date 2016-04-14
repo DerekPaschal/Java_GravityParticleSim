@@ -8,7 +8,7 @@ import java.util.*;
 class View extends JPanel{ 
 	//Field field;
 	Game game;
-	boolean is_lag;
+	//boolean is_lag;
 	Vec3 window;
 	
 	//ListIterator<Particle> partIterator;
@@ -19,7 +19,7 @@ class View extends JPanel{
 		//screen_x = new_screen_x;
 		//screen_y = new_screen_y;
 		this.window = window;
-		is_lag = false;
+		//is_lag = false;
 		//vel_color = false;
 	}
 
@@ -57,8 +57,8 @@ class View extends JPanel{
 		output = "Threads: " + this.game.field.calc_threads;
 		g.drawString(output, 2, 57);
 			
-		if (is_lag)
-			g.setColor(new Color(255, 132, 132));
+		//if (is_lag)
+		//	g.setColor(new Color(255, 132, 132));
 		
 		output = "Particles: " + this.game.field.part_list.size();
 		g.drawString(output, 2, 12);
