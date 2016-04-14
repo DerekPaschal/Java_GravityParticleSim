@@ -198,7 +198,7 @@ class Game
 		{
 			case 1:
 				this.Clear();
-				this.accuracy_multiple = 2;
+				this.accuracy_multiple = 5;
 				this.secs_per_sec = 1;
 				this.state = 1;
 				this.show_center = true;
@@ -209,7 +209,7 @@ class Game
 			case 2:
 				this.Clear();
 				this.state = 2;
-				this.accuracy_multiple = 2;
+				this.accuracy_multiple = 5;
 				this.secs_per_sec = 1;
 				this.show_center = true;
 				this.field.collide_on = true;
@@ -286,7 +286,7 @@ class Game
 			
 			synchronized (this.field)
 			{
-				createPartDisk(newPart, 200, 20, 1699, true, false, new Vec3(), 4.0, 5.0, 0.0, false, 0.0, 0.0, new Vec3(240,240,240));
+				createPartDisk(newPart, 200, 20, 899, true, false, new Vec3(), 4.0, 5.0, 0.0, false, 0.0, 0.0, new Vec3(240,240,240));
 				addNewParticle(newPart);
 			}
 		}

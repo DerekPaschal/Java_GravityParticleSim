@@ -33,12 +33,13 @@ class View extends JPanel{
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		
-		Particle workingPart;
-		synchronized(this.game.field)
+		Particle part1;
+		synchronized(this.game.field.remove_lock)
 		{
 			for (int i = 0; i < this.game.field.part_list.size(); i++)
 			{
 				this.game.field.part_list.get(i).draw(g2,this.game.coloring);
+				
 			}
 		}
 		

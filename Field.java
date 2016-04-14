@@ -19,6 +19,7 @@ class Field
 	private double total_mass_temp;
 	
 	ExecutorService executor;
+	Object remove_lock;
 	
 	Field(Vec3 new_window, int CoreCount)
 	{
@@ -27,14 +28,15 @@ class Field
 		this.mass_center = new Vec3();
 		this.total_mass = 0.0;
 		this.window = new_window;
-		this.calc_threads = Math.min(CoreCount,8);
+		this.calc_threads = Math.min(CoreCount-1,8);
 		
 		this.mass_center_temp = new Vec3();
 		this.total_mass_temp = 0.0;
 		this.grav_on = true;
 		this.collide_on = true;
 		
-		executor = Executors.newFixedThreadPool(8);
+		executor = Executors.newCachedThreadPool();
+		remove_lock = new Object();
 	}
 	
 	
@@ -73,17 +75,20 @@ class Field
 		try {latch.await();}catch(InterruptedException e){}
 		
 		//Remove particles no longer in the field
-		for(int i = 0; i < this.part_list.size(); i++)
+		synchronized (remove_lock)
 		{
-			part1 = this.part_list.get(i);
-			if (part1.remove)
+			for(int i = 0; i < this.part_list.size(); i++)
 			{
-				this.part_list.remove(i);
+				part1 = this.part_list.get(i);
+				if (part1.remove)
+				{
+					this.part_list.remove(i);
+				}
 			}
 		}
 		
 		
-		//Do Velocity and Position Update
+		//Do Velocity and Position Update, and Center of Mass Iteration
 		for(int i = 0; i < this.part_list.size(); i++)
 		{
 			part1 = this.part_list.get(i);
@@ -95,15 +100,7 @@ class Field
 			part1.pos.x = part1.pos.x + (part1.vel.x * timestep);
 			part1.pos.y = part1.pos.y + (part1.vel.y * timestep);
 			part1.pos.z = part1.pos.z + (part1.vel.z * timestep);
-		}
-		
-		
-		// Update Center of Mass position
-		partIterator = part_list.listIterator();
-		while (partIterator.hasNext())
-		{
-			part1 = partIterator.next();
-			//Running totals for center of mass and total mass
+			
 			mass_center_temp.addi(part1.mass * part1.pos.x, part1.mass * part1.pos.y, part1.mass * part1.pos.z);
 			total_mass_temp += part1.mass;
 		}

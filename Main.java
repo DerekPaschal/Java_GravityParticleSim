@@ -4,8 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.*;
 //import javax.swing.Timer;
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class Main extends JFrame{
@@ -43,13 +41,10 @@ public class Main extends JFrame{
 		this.view.addMouseListener(this.mousecontroller);
 		this.view.addKeyListener(this.keycontroller);
 		
-		MainTask main_task = new MainTask(this);
-		
-		//SimControl();
-		new Timer(true).schedule(main_task, 300,30);
+		SimControl();
 	}
 	
-/*	
+	
 	public void SimControl()
 	{
 		while (true)
@@ -59,37 +54,37 @@ public class Main extends JFrame{
 			
 			int accuracy_multiple = this.game.accuracy_multiple;
 			int secs_per_sec = this.game.secs_per_sec;
-			//if (accuracy_multiple <= 0)
-			//{
-			//	System.out.println("Accuracy must be set to 0 or higher!");
-			//	System.exit(0);
-			//}
+			if (accuracy_multiple <= 0)
+			{
+				System.out.println("Accuracy must be set to 0 or higher!");
+				System.exit(0);
+			}
 			
 			double timestep = 1.0/accuracy_multiple;
 			this.game.timestep = timestep;
 			for (long i = 0; i < accuracy_multiple * secs_per_sec; i++)
 				this.game.update();
 			
-			repaint(0); // Indirectly calls View.paintComponent in its own thread (?), will paint whenever it feels like it
+			repaint(0); // Indirectly calls View.paintComponent in its own thread
 			//try{
 			//TimeUnit.MILLISECONDS.sleep(1);
 			//} catch (InterruptedException e){}
 			
 			
 			//End Timer
-			long wait_time =(long)(17000000 - (System.nanoTime() - new_frame_time));//17000000
+			long wait_time =(long)(20000000 - (System.nanoTime() - new_frame_time));//17000000
 			
 			//This block is not measured by wait_time
 			this.view.is_lag = (wait_time < 0);
-			if (wait_time > 1000)
+			if (wait_time > 0)
 			{
 				try{
-				TimeUnit.NANOSECONDS.sleep(wait_time-100);
+				TimeUnit.NANOSECONDS.sleep(wait_time-1000);
 				} catch (InterruptedException e){}
 			}
 		}
 	}
-*/
+
 	public static void main(String[] args) throws Exception {
 		new Main();
 	}
