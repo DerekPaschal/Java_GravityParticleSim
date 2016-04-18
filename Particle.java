@@ -42,9 +42,9 @@ class Particle
 	
 	public void draw(Graphics2D g2, int coloring)
 	{	
-		//int draw_diameter;
-		//int draw_pos_x;
-		//int draw_pos_y;
+		int draw_diameter;
+		int draw_pos_x;
+		int draw_pos_y;
 		
 		//this.RGB = new Vec3(Math.min(255, this.RGB.x), Math.min(255, this.RGB.y), Math.min(255, this.RGB.z));
 		
@@ -61,7 +61,7 @@ class Particle
 		
 		
 		double late_const = 1.0;
-		/*
+		
 		if (this.radius >= 6 && !bounces)
 		{
 			draw_diameter = (int)(this.radius *1.1 * 2);
@@ -86,7 +86,7 @@ class Particle
 			
 			late_const = 0.80;
 		}
-		*/
+		
 		
 		//draw_diameter = (int)(this.radius *late_const*2);
 		//draw_pos_x = (int)(this.pos.x - this.radius*late_const );

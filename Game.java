@@ -227,7 +227,7 @@ class Game
 			case 3:
 				this.Clear();
 				this.state = 3;
-				this.accuracy_multiple = 2;
+				this.accuracy_multiple = 1;
 				this.secs_per_sec = 1;
 				this.show_center = false;
 				this.field.collide_on = true;

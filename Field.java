@@ -19,7 +19,7 @@ class Field
 	private double total_mass_temp;
 	
 	ExecutorService executor;
-	Object remove_lock;
+	Object visual_lock;
 	
 	Field(Vec3 new_window, int CoreCount)
 	{
@@ -36,7 +36,7 @@ class Field
 		this.collide_on = true;
 		
 		executor = Executors.newCachedThreadPool();
-		remove_lock = new Object();
+		visual_lock = new Object();
 	}
 	
 	
@@ -75,7 +75,7 @@ class Field
 		try {latch.await();}catch(InterruptedException e){}
 		
 		//Remove particles no longer in the field
-		synchronized (remove_lock)
+		synchronized (visual_lock)
 		{
 			for(int i = 0; i < this.part_list.size(); i++)
 			{
@@ -97,9 +97,12 @@ class Field
 			part1.vel.y = part1.vel.y + (part1.acc.y * timestep);
 			part1.vel.z = part1.vel.z + (part1.acc.z * timestep);
 			
-			part1.pos.x = part1.pos.x + (part1.vel.x * timestep);
-			part1.pos.y = part1.pos.y + (part1.vel.y * timestep);
-			part1.pos.z = part1.pos.z + (part1.vel.z * timestep);
+			synchronized(visual_lock)
+			{
+				part1.pos.x = part1.pos.x + (part1.vel.x * timestep);
+				part1.pos.y = part1.pos.y + (part1.vel.y * timestep);
+				part1.pos.z = part1.pos.z + (part1.vel.z * timestep);
+			}
 			
 			mass_center_temp.addi(part1.mass * part1.pos.x, part1.mass * part1.pos.y, part1.mass * part1.pos.z);
 			total_mass_temp += part1.mass;
