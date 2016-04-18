@@ -36,10 +36,10 @@ class View extends JPanel{
 		Particle part1;
 		synchronized(this.game.field.visual_lock)
 		{
-			for (int i = 0; i < this.game.field.part_list.size(); i++)
+			int list_size = this.game.field.part_list.size();
+			for (int i = 0; i < list_size; i++)
 			{
 				this.game.field.part_list.get(i).draw(g2,this.game.coloring);
-				
 			}
 		}
 		
