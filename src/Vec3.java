@@ -1,4 +1,3 @@
-import java.util.*;
 class Vec3
 {
 	double x;

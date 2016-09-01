@@ -1,5 +1,4 @@
 import java.awt.event.*;
-import java.io.IOException;
 
 class KeyController implements KeyListener
 {

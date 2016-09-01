@@ -1,5 +1,4 @@
 import java.util.*;
-import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +47,6 @@ class Field
 		mass_center_temp = new Vec3();
 		Particle part1;
 		
-		ListIterator<Particle> partIterator;
 		double thread_count = (double)(calc_threads);
 		
 		//Run particle-wall collision and reset particle accelerations

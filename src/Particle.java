@@ -1,8 +1,4 @@
-import javax.swing.JPanel;
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.*;
-import java.util.*;
 
 class Particle
 {	
@@ -93,10 +89,6 @@ class Particle
 		//draw_pos_y = (int)(this.pos.y - this.radius*late_const );
 		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 		g2.fillOval((int)(this.pos.x - this.radius*late_const), (int)(this.pos.y - this.radius*late_const), draw_diameter, draw_diameter);
-		
-		
-		
-		
 	}
 	
 	

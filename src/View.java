@@ -1,10 +1,8 @@
 import javax.swing.JPanel;
-import javax.imageio.ImageIO;
 import java.io.IOException;
-import java.io.File;
 import java.awt.*;
-import java.util.*;
 
+@SuppressWarnings("serial")
 class View extends JPanel{ 
 	//Field field;
 	Game game;
@@ -33,7 +31,6 @@ class View extends JPanel{
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		
-		Particle part1;
 		synchronized(this.game.field.visual_lock)
 		{
 			int list_size = this.game.field.part_list.size();

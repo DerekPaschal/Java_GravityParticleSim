@@ -221,7 +221,7 @@ class Game
 				//double new_mass_min = ((4.0/3.0)*3.14*Math.pow(new_size_min,3) * this.density);
 				//double new_mass_max = ((4.0/3.0)*3.14*Math.pow(new_size_max,3) * this.density);
 				createPartDisk(null,300,0,600,false,true, new Vec3(this.window.x/2,this.window.y/2,0.0),
-									new_size_min, new_size_max, new_density, true, 0.0, 0.2/this.GravG, new Vec3(250,250,250));
+									new_size_min, new_size_max, new_density, true, 0.0, 0.2/Game.GravG, new Vec3(250,250,250));
 				break;
 				
 			case 3:
@@ -313,7 +313,7 @@ class Game
 			double new_size = 7;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density; //Mass dependent on Area of Circle
 			double new_mass = ((4.0/3.0)*3.14*Math.pow(new_size,3) *  this.default_density*2);
-			Particle newPart = new Particle(new_click_xy, vel, new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
+			Particle newPart = new Particle(new_click_xy, vel, new_size, new_mass, 0.0, 0.1/Game.GravG, true, RGB);
 			addNewParticle(newPart);
 		}
 	}
@@ -364,7 +364,7 @@ class Game
 				new_size = 5;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.default_density*2);
-			Particle newPart = new Particle(new_click_xy, new Vec3(), new_size, new_mass, 1.0, 0.1/this.GravG, false, RGB);
+			Particle newPart = new Particle(new_click_xy, new Vec3(), new_size, new_mass, 1.0, 0.1/Game.GravG, false, RGB);
 			addNewParticle(newPart);
 		}
 		
@@ -380,7 +380,7 @@ class Game
 				new_size = 100;
 			//double new_mass = 2 * 3.14 * new_size * new_size * this.density;
 			double new_mass = ((4.0/3.0)*3.14*new_size * new_size * new_size * this.default_density);
-			Particle newPart = new Particle(new_click_xy, new Vec3(), new_size, new_mass, 0.0, 0.1/this.GravG, true, RGB);
+			Particle newPart = new Particle(new_click_xy, new Vec3(), new_size, new_mass, 0.0, 0.1/Game.GravG, true, RGB);
 			addNewParticle(newPart);
 		}
 		/*
@@ -468,7 +468,7 @@ class Game
 		double cm_distance = Math.sqrt(Math.pow(centerpos.x - new_pos.x,2) + Math.pow(centerpos.y - new_pos.y,2));
 		double OrbitV = 0.0;
 		if (cm_distance >= 1)
-			OrbitV = Math.sqrt((field.GravG * orbitmass) / cm_distance);
+			OrbitV = Math.sqrt((Field.GravG * orbitmass) / cm_distance);
 		
 		//Find unit tangent direction between particles
 		Vec3 tan = new Vec3(new_pos.y - centerpos.y, centerpos.x - new_pos.x, 0.0);
@@ -501,7 +501,6 @@ class Game
 		double z;
 		double mass;
 		double size;
-		double center_mass = 0;
 		Vec3 velocity = new Vec3();
 		Vec3 new_pos = new Vec3();
 		Particle newPart;
@@ -510,7 +509,6 @@ class Game
 		if (centerParticle != null)
 		{
 			center = new Vec3(centerParticle.pos);
-			center_mass = centerParticle.mass;
 		}
 		
 		for (int i=0; i < parts; i++)

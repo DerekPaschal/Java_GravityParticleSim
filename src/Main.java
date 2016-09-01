@@ -1,11 +1,7 @@
 import javax.swing.JFrame;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.*;
-//import javax.swing.Timer;
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("serial")
 public class Main extends JFrame{
 	Game game;
 	View view;

@@ -1,5 +1,4 @@
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
 
 class EulerRun implements Runnable
@@ -110,7 +109,7 @@ class EulerRun implements Runnable
 				//Do Gravity Calculation
 				if ((grav_on) && (part1 != part2) && (!part1.remove) && (!part2.remove))//&& (distance >= Math.max(part1.radius, part2.radius))
 				{
-					double VectorG = this.GravG * part2.mass / (distance*distance*distance);
+					double VectorG = EulerRun.GravG * part2.mass / (distance*distance*distance);
 					part1.acc.addi(VectorG * (part2.pos.x - part1.pos.x), VectorG * (part2.pos.y - part1.pos.y), VectorG * (part2.pos.z - part1.pos.z));
 				}
 			}	
